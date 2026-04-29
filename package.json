@@ -10,7 +10,8 @@
     "db:generate": "prisma generate",
     "db:migrate": "node prisma/setup.js",
     "db:setup": "node prisma/setup.js && node prisma/seed.js",
-    "db:seed": "node prisma/seed.js"
+    "db:seed": "node prisma/seed.js",
+    "sync:fitbit": "tsx scripts/sync-fitbit.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",
@@ -30,6 +31,7 @@
     "eslint-config-next": "16.2.4",
     "prisma": "^6.19.3",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5"
   }
 }

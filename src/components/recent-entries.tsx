@@ -23,6 +23,7 @@ export function RecentEntries({ entries }: RecentEntriesProps) {
               <Th>Calories eaten</Th>
               <Th>Calories burned</Th>
               <Th>Deficit/surplus</Th>
+              <Th>Source</Th>
               <Th>Notes</Th>
             </tr>
           </thead>
@@ -35,6 +36,11 @@ export function RecentEntries({ entries }: RecentEntriesProps) {
                 <Td>{entry.caloriesEaten?.toLocaleString() ?? "-"}</Td>
                 <Td>{entry.caloriesBurned?.toLocaleString() ?? "-"}</Td>
                 <Td>{formatBalance(calorieBalance(entry))}</Td>
+                <Td>
+                  <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium capitalize text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
+                    {entry.source}
+                  </span>
+                </Td>
                 <Td>{entry.notes || "-"}</Td>
               </tr>
             ))}

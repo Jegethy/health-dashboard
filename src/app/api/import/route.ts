@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       existingDates.add(entry.date);
     }
 
-    await upsertEntry(entry);
+    await upsertEntry(entry, "csv");
   }
 
   revalidatePath("/");

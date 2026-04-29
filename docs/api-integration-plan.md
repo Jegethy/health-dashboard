@@ -1,42 +1,60 @@
-# Future API Integration Plan
+# API Integration Plan
 
-Live API integrations are intentionally outside the MVP. The first version keeps health data local, editable, and portable through manual entry plus CSV import/export. That makes the data model easier to trust before adding OAuth flows, background sync, or provider-specific edge cases.
+Fitbit is now the first live data source. The intended flow is:
 
-## Google Health / Fitbit
+1. Health Sync on Android pushes health data into Fitbit.
+2. This dashboard connects to Fitbit with OAuth.
+3. Fitbit daily summaries are normalized into `DailyHealthEntry`.
+4. Manual entry and CSV import/export remain fallback and correction methods.
 
-- Add provider-specific modules under `src/lib/integrations`.
-- Store normalized daily values in the existing `DailyHealthEntry` model where possible.
-- Keep raw provider payloads out of the core dashboard until there is a clear need for auditing or re-syncing.
-- Add OAuth only after the local workflow is stable.
-- Store OAuth client IDs and secrets in `.env.local` for local development, never in source control.
-- Document required scopes before enabling any sync.
+The provider code lives under `src/lib/integrations`, with Fitbit implemented as the first adapter. A future Google Health API provider should implement the same provider interface rather than rewriting dashboard components.
+
+## Current Fitbit Provider
+
+- Uses Fitbit OAuth Authorization Code flow.
+- Stores encrypted access and refresh tokens in SQLite.
+- Syncs daily steps, calories burned, weight, and nutrition calories when Fitbit provides them.
+- Preserves notes.
+- Does not overwrite existing fields with null when Fitbit has no value.
+- Marks entries as `fitbit` or `mixed` in the dashboard source column.
+
+## Google Health API Future Provider
+
+Google Health API migration is a priority because Fitbit Web API is legacy.
+
+- Add a Google provider under `src/lib/integrations/google-health`.
+- Reuse `IntegrationAccount` and `SyncLog`.
+- Normalize data into `DailyHealthEntry`.
+- Keep provider-specific payload parsing inside the provider adapter.
+- Store OAuth secrets in `.env.local`, never in source control.
 
 ## MyFitnessPal
 
-MyFitnessPal API access is likely restricted, so treat it as a CSV/manual source first.
+Direct MyFitnessPal API integration is not planned for now because access is restricted.
 
-- Prefer importing exported food diary CSV files.
-- Map calories eaten into `caloriesEaten`.
-- Keep manual correction available after import because food diary exports can vary by format and region.
+- Treat MyFitnessPal as a CSV/manual import source.
+- Prefer dedicated CSV mappers if exported data shape differs from the dashboard CSV format.
+- Map food diary calories into `caloriesEaten`.
 
 ## Samsung Health
 
-Samsung Health is best treated as an export/import source unless a reliable local integration path is chosen later.
+Samsung Health should remain export/import focused unless a reliable local API path becomes available.
 
-- Start with CSV export parsing for steps, weight, sleep, and exercise sessions.
-- Add new models only when the dashboard needs data that does not fit the daily summary entry.
+- Start with CSV or file export parsing.
+- Consider new models only for data that does not fit daily summaries, such as workouts or sleep sessions.
 
 ## Secrets And Local Storage
 
-- Keep `.env` and `.env.local` ignored by Git.
-- Use `.env.example` for placeholder configuration.
-- Use SQLite for local persistence in the MVP.
-- Do not commit OAuth tokens, refresh tokens, client secrets, or personal exported data.
+- `.env` and `.env.local` are ignored by Git.
+- `.env.example` contains placeholders only.
+- OAuth tokens are encrypted before being stored in SQLite.
+- SQLite database files are ignored by Git.
+- Do not commit exported personal health data.
 
-## Suggested Expansion Path
+## Expansion Path
 
-1. Keep manual entry and CSV import/export as the source of truth.
-2. Add provider-specific CSV import mappers.
-3. Add integration tables for sync metadata if live APIs are introduced.
-4. Add OAuth flows behind a clear settings page.
-5. Add background sync only after manual re-sync and conflict handling are reliable.
+1. Stabilize Fitbit sync and conflict behavior.
+2. Add import previews and row-level sync/import messages.
+3. Add optional models for sleep, body measurements, mood, water, and gym sessions.
+4. Add Google Health API as a second provider.
+5. Phase Fitbit toward legacy fallback status when Google Health covers the needed data reliably.

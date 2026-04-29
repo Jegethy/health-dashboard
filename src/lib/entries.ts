@@ -12,6 +12,9 @@ export type EntryView = {
   caloriesEaten: number | null;
   caloriesBurned: number | null;
   notes: string;
+  source: string;
+  sourceUpdatedAt: string | null;
+  fitbitSyncedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -26,23 +29,33 @@ export async function getEntries(): Promise<EntryView[]> {
   return entries.map(toEntryView);
 }
 
-export async function upsertEntry(input: EntryInput): Promise<EntryView> {
+export async function upsertEntry(input: EntryInput, source = "manual"): Promise<EntryView> {
+  const date = parseDateInput(input.date);
+  const existing = await prisma.dailyHealthEntry.findUnique({
+    where: { date },
+  });
+  const nextSource = existing && existing.source !== source ? "mixed" : source;
+
   const entry = await prisma.dailyHealthEntry.upsert({
-    where: { date: parseDateInput(input.date) },
+    where: { date },
     update: {
       weightKg: input.weightKg,
       steps: input.steps,
       caloriesEaten: input.caloriesEaten,
       caloriesBurned: input.caloriesBurned,
       notes: input.notes,
+      source: nextSource,
+      sourceUpdatedAt: new Date(),
     },
     create: {
-      date: parseDateInput(input.date),
+      date,
       weightKg: input.weightKg,
       steps: input.steps,
       caloriesEaten: input.caloriesEaten,
       caloriesBurned: input.caloriesBurned,
       notes: input.notes,
+      source,
+      sourceUpdatedAt: new Date(),
     },
   });
 
@@ -69,6 +82,8 @@ async function seedIfEmpty() {
         caloriesEaten: 2380 - index * 18 + (index % 3) * 70,
         caloriesBurned: 2630 + index * 35 + (index % 2) * 120,
         notes: index === 0 ? "Fictional starter data." : "",
+        source: "sample",
+        sourceUpdatedAt: new Date(),
       };
     }),
   });
@@ -83,6 +98,9 @@ function toEntryView(entry: DailyHealthEntry): EntryView {
     caloriesEaten: entry.caloriesEaten,
     caloriesBurned: entry.caloriesBurned,
     notes: entry.notes ?? "",
+    source: entry.source,
+    sourceUpdatedAt: entry.sourceUpdatedAt?.toISOString() ?? null,
+    fitbitSyncedAt: entry.fitbitSyncedAt?.toISOString() ?? null,
     createdAt: entry.createdAt.toISOString(),
     updatedAt: entry.updatedAt.toISOString(),
   };

@@ -1,14 +1,19 @@
 import { EntryForm } from "@/components/entry-form";
 import { HealthCharts } from "@/components/health-charts";
 import { ImportExport } from "@/components/import-export";
+import { IntegrationsPanel } from "@/components/integrations-panel";
 import { RecentEntries } from "@/components/recent-entries";
 import { SummaryCards } from "@/components/summary-cards";
+import { fitbitProvider } from "@/lib/integrations/fitbit/provider";
 import { getEntries } from "@/lib/entries";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  const entries = await getEntries();
+  const [entries, fitbitStatus] = await Promise.all([
+    getEntries(),
+    fitbitProvider.getStatus(),
+  ]);
 
   return (
     <main className="min-h-screen bg-zinc-50 px-4 py-6 text-zinc-950 dark:bg-zinc-950 dark:text-zinc-50 sm:px-6 lg:px-8">
@@ -34,6 +39,7 @@ export default async function Home() {
 
         <SummaryCards entries={entries} />
         <HealthCharts entries={entries} />
+        <IntegrationsPanel fitbitStatus={fitbitStatus} />
         <EntryForm />
         <ImportExport />
         <RecentEntries entries={entries} />
