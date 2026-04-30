@@ -33,7 +33,7 @@ export function backupsDirectoryExists() {
 }
 
 export function getBackupsDirectory() {
-  return path.resolve(/*turbopackIgnore: true*/ process.cwd(), "backups");
+  return path.join(/* turbopackIgnore: true */ process.cwd(), "backups");
 }
 
 function getSqliteDatabasePath() {
@@ -49,7 +49,7 @@ function getSqliteDatabasePath() {
     return filePath;
   }
 
-  return path.resolve(/*turbopackIgnore: true*/ process.cwd(), "prisma", filePath);
+  return path.join(/* turbopackIgnore: true */ process.cwd(), "prisma", filePath);
 }
 
 function formatBackupTimestamp(date: Date) {
