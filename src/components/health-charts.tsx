@@ -11,7 +11,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { calorieBalance } from "@/lib/calculations";
 import { EntryView } from "@/lib/entries";
 
 type HealthChartsProps = {
@@ -19,35 +18,41 @@ type HealthChartsProps = {
 };
 
 export function HealthCharts({ entries }: HealthChartsProps) {
+  const hasWeight = entries.some((entry) => entry.weightKg != null);
   const chartData = entries.map((entry) => ({
     date: entry.date.slice(5),
     weightKg: entry.weightKg,
     steps: entry.steps,
-    caloriesEaten: entry.caloriesEaten,
     caloriesBurned: entry.caloriesBurned,
-    balance: calorieBalance(entry),
   }));
 
   return (
     <section className="grid gap-4 xl:grid-cols-2">
       <ChartFrame title="Weight over time">
-        <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" opacity={0.25} />
-            <XAxis dataKey="date" tickLine={false} axisLine={false} />
-            <YAxis tickLine={false} axisLine={false} domain={["dataMin - 1", "dataMax + 1"]} />
-            <Tooltip />
-            <Line
-              type="monotone"
-              dataKey="weightKg"
-              name="Weight kg"
-              stroke="#0f766e"
-              strokeWidth={3}
-              dot={false}
-              connectNulls
-            />
-          </LineChart>
-        </ResponsiveContainer>
+        {hasWeight ? (
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" opacity={0.25} />
+              <XAxis dataKey="date" tickLine={false} axisLine={false} />
+              <YAxis tickLine={false} axisLine={false} domain={["dataMin - 1", "dataMax + 1"]} />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="weightKg"
+                name="Weight kg"
+                stroke="#0f766e"
+                strokeWidth={3}
+                dot={false}
+                connectNulls
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        ) : (
+          <EmptyChartMessage
+            title="No recent weigh-ins"
+            detail="Sync a wider date range or add a manual weigh-in."
+          />
+        )}
       </ChartFrame>
 
       <ChartFrame title="Daily steps">
@@ -62,7 +67,7 @@ export function HealthCharts({ entries }: HealthChartsProps) {
         </ResponsiveContainer>
       </ChartFrame>
 
-      <ChartFrame title="Calories eaten vs burned">
+      <ChartFrame title="Calories burned over time">
         <ResponsiveContainer width="100%" height={280}>
           <LineChart data={chartData}>
             <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" opacity={0.25} />
@@ -71,36 +76,18 @@ export function HealthCharts({ entries }: HealthChartsProps) {
             <Tooltip />
             <Line
               type="monotone"
-              dataKey="caloriesEaten"
-              name="Calories eaten"
-              stroke="#b45309"
-              strokeWidth={2}
-              dot={false}
-              connectNulls
-            />
-            <Line
-              type="monotone"
               dataKey="caloriesBurned"
-              name="Calories burned"
+              name="Total calories burned"
               stroke="#16a34a"
-              strokeWidth={2}
+              strokeWidth={3}
               dot={false}
               connectNulls
             />
           </LineChart>
         </ResponsiveContainer>
-      </ChartFrame>
-
-      <ChartFrame title="Calorie deficit/surplus">
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" opacity={0.25} />
-            <XAxis dataKey="date" tickLine={false} axisLine={false} />
-            <YAxis tickLine={false} axisLine={false} />
-            <Tooltip />
-            <Bar dataKey="balance" name="Balance" fill="#7c3aed" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
+        <ChartNote>
+          Total calories burned as returned by Google Health/Fitbit.
+        </ChartNote>
       </ChartFrame>
     </section>
   );
@@ -119,4 +106,17 @@ function ChartFrame({
       <div className="mt-4 h-[280px]">{children}</div>
     </article>
   );
+}
+
+function EmptyChartMessage({ title, detail }: { title: string; detail: string }) {
+  return (
+    <div className="flex h-full flex-col items-center justify-center rounded-md border border-dashed border-zinc-300 px-6 text-center dark:border-zinc-700">
+      <p className="text-sm font-semibold text-zinc-800 dark:text-zinc-100">{title}</p>
+      <p className="mt-2 max-w-sm text-sm text-zinc-500 dark:text-zinc-400">{detail}</p>
+    </div>
+  );
+}
+
+function ChartNote({ children }: { children: React.ReactNode }) {
+  return <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">{children}</p>;
 }

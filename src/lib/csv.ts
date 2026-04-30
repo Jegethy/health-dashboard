@@ -5,10 +5,11 @@ const headers = [
   "date",
   "weightKg",
   "steps",
-  "caloriesEaten",
   "caloriesBurned",
   "notes",
 ] as const;
+
+const optionalImportHeaders = ["caloriesEaten"] as const;
 
 export function entriesToCsv(entries: EntryView[]): string {
   const rows = entries.map((entry) =>
@@ -16,7 +17,6 @@ export function entriesToCsv(entries: EntryView[]): string {
       entry.date,
       entry.weightKg,
       entry.steps,
-      entry.caloriesEaten,
       entry.caloriesBurned,
       entry.notes,
     ].map(formatCsvCell),
@@ -52,7 +52,7 @@ export function parseEntriesCsv(csv: string): {
     }
 
     const record = Object.fromEntries(
-      headers.map((header) => {
+      [...headers, ...optionalImportHeaders].map((header) => {
         const cellIndex = foundHeaders.indexOf(header);
         return [header, row[cellIndex] ?? ""];
       }),

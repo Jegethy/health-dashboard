@@ -2,7 +2,7 @@
 
 Google Health API is the first live provider for this local personal dashboard. Fitbit Web API is not used because new Fitbit developer app creation is unavailable.
 
-The app keeps manual entry and CSV import/export as fallback and correction methods.
+The app keeps manual entry and CSV import/export as fallback and correction methods for weight, steps, total calories burned, and notes. It intentionally does not track food intake, hydration, mood, or calorie deficit/surplus.
 
 ## What The Integration Syncs
 
@@ -15,7 +15,7 @@ The first Google Health version uses the official Google Health API v4 discovery
   - `total-calories`
   - `weight`
 
-The discovery document did not show a nutrition/calories-eaten data type, so calories eaten remains manual/CSV for now.
+This app does not use food or nutrition data. Total calories means total calories burned as returned by Google Health/Fitbit.
 
 ## Google Cloud Setup
 
@@ -95,8 +95,10 @@ The dashboard Integrations panel includes:
 
 - Export Google Health rollup CSV: last 7 days
 - Export Google Health rollup CSV: last 30 days
+- Export Google Health rollup CSV: last 90 days
 
 These exports call Google Health directly and do not read from `DailyHealthEntry`. Use them to compare the API values against the Fitbit/phone app.
+Use the 90-day export if your last weigh-in is older than the current 30-day dashboard data.
 
 Direct URL format:
 
@@ -164,5 +166,7 @@ Clear and sync requires Google Health to already be connected. If Google Health 
 - Weight 403 or skipped weight: confirm Google Cloud Data Access and `.env.local` include `https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly`, then disconnect and reconnect.
 - 403 errors: confirm the Google Health API is enabled, the OAuth consent screen includes the required scopes, and your Google account is added as a test user.
 - Phone app mismatch: export Google Health rollup CSV. If the rollup export differs from the phone app, the mismatch is upstream/API availability or delay, not the local dashboard table.
+- Total calories burned is not food intake. This app intentionally does not track meals or deficit/surplus.
+- Weight missing: weight appears only on dates where Google Health has weigh-ins. Sync or export 90 days if older weigh-ins are outside the current range.
 
 Google Health API is new and may still change. If Google changes endpoint, scope, or response details, update the provider adapter rather than dashboard components.

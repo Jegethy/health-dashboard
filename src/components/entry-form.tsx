@@ -42,7 +42,6 @@ export function EntryForm() {
         <Field label="Date" name="date" type="date" required />
         <Field label="Weight kg" name="weightKg" type="number" step="0.1" min="0" />
         <Field label="Steps" name="steps" type="number" step="1" min="0" />
-        <Field label="Calories eaten" name="caloriesEaten" type="number" step="1" min="0" />
         <Field label="Calories burned" name="caloriesBurned" type="number" step="1" min="0" />
         <div className="lg:col-span-6">
           <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300" htmlFor="notes">

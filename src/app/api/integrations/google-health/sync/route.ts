@@ -27,8 +27,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "toDate must be on or after fromDate." }, { status: 400 });
   }
 
-  if (days > 30) {
-    return NextResponse.json({ error: "Google Health sync is limited to 31 calendar days per request." }, { status: 400 });
+  if (days > 89) {
+    return NextResponse.json({ error: "Google Health sync is limited to 90 calendar days per request." }, { status: 400 });
   }
 
   try {

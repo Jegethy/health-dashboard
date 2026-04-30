@@ -12,7 +12,7 @@ export const entryInputSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD format."),
   weightKg: optionalNonNegativeNumber,
   steps: optionalNonNegativeInt,
-  caloriesEaten: optionalNonNegativeInt,
+  caloriesEaten: optionalNonNegativeInt.optional().default(null),
   caloriesBurned: optionalNonNegativeInt,
   notes: z.string().trim().max(2000).optional().default(""),
 });

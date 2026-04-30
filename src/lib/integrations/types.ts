@@ -21,7 +21,6 @@ export type DailyMetricPatch = {
   date: string;
   weightKg?: number;
   steps?: number;
-  caloriesEaten?: number;
   caloriesBurned?: number;
 };
 

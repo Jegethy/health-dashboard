@@ -172,6 +172,14 @@ export function IntegrationsPanel({ googleHealthStatus, initialMessage }: Integr
           </button>
           <button
             type="button"
+            disabled={!googleHealthStatus.connected || isSyncing}
+            onClick={() => syncDays(90)}
+            className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-900"
+          >
+            Sync last 90 days
+          </button>
+          <button
+            type="button"
             disabled={!googleHealthStatus.connected}
             onClick={disconnect}
             className="rounded-md border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40"
@@ -194,6 +202,14 @@ export function IntegrationsPanel({ googleHealthStatus, initialMessage }: Integr
           >
             Export rollup CSV: 30 days
           </button>
+          <button
+            type="button"
+            disabled={!googleHealthStatus.connected}
+            onClick={() => exportRollup(90)}
+            className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-900"
+          >
+            Export rollup CSV: 90 days
+          </button>
         </div>
       </div>
       {message ? <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">{message}</p> : null}
@@ -212,7 +228,7 @@ export function IntegrationsPanel({ googleHealthStatus, initialMessage }: Integr
         <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Data reset</h3>
         <p className="mt-2 max-w-3xl text-sm text-zinc-600 dark:text-zinc-400">
           These actions delete local dashboard health entries only. Google Health connection,
-          OAuth tokens, sync logs, and Google/Fitbit source data are kept. Type DELETE to enable.
+          OAuth tokens, sync logs, and Google Health/Fitbit source data are kept. Type DELETE to enable.
         </p>
         <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
           <input
@@ -242,6 +258,7 @@ export function IntegrationsPanel({ googleHealthStatus, initialMessage }: Integr
           Dashboard CSV export downloads local stored data. Google Health rollup CSV export asks
           Google Health directly; use it to compare API values with the phone app. If those values
           differ, the discrepancy is upstream/API availability rather than the local dashboard table.
+          This app intentionally does not track diet data.
         </p>
       </div>
     </section>

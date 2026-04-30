@@ -4,17 +4,8 @@ export type HealthEntry = {
   date: string;
   weightKg: number | null;
   steps: number | null;
-  caloriesEaten: number | null;
   caloriesBurned: number | null;
 };
-
-export function calorieBalance(entry: HealthEntry): number | null {
-  if (entry.caloriesBurned == null || entry.caloriesEaten == null) {
-    return null;
-  }
-
-  return entry.caloriesBurned - entry.caloriesEaten;
-}
 
 export function weightChange(entries: HealthEntry[]): number | null {
   const withWeight = entries
@@ -39,12 +30,9 @@ export function averageStepsLast7Days(entries: HealthEntry[]): number | null {
   return average(recent.map((entry) => entry.steps!));
 }
 
-export function averageDeficitLast7Days(entries: HealthEntry[]): number | null {
-  const balances = entriesInLast7Days(entries)
-    .map(calorieBalance)
-    .filter((balance): balance is number => balance != null);
-
-  return average(balances);
+export function averageCaloriesBurnedLast7Days(entries: HealthEntry[]): number | null {
+  const recent = entriesInLast7Days(entries).filter((entry) => entry.caloriesBurned != null);
+  return average(recent.map((entry) => entry.caloriesBurned!));
 }
 
 export function currentEntryStreak(entries: HealthEntry[]): number {
@@ -64,6 +52,15 @@ export function currentEntryStreak(entries: HealthEntry[]): number {
   }
 
   return streak;
+}
+
+export function dataCoverage(entries: HealthEntry[]) {
+  return {
+    totalDays: entries.length,
+    stepsDays: entries.filter((entry) => entry.steps != null).length,
+    caloriesBurnedDays: entries.filter((entry) => entry.caloriesBurned != null).length,
+    weightDays: entries.filter((entry) => entry.weightKg != null).length,
+  };
 }
 
 function entriesInLast7Days(entries: HealthEntry[]): HealthEntry[] {

@@ -83,7 +83,6 @@ async function seedIfEmpty() {
         date: parseDateInput(formatDateInput(day)),
         weightKg: Number((96.8 - index * 0.18 + (index % 3) * 0.05).toFixed(1)),
         steps: 5600 + index * 430 + (index % 4) * 370,
-        caloriesEaten: 2380 - index * 18 + (index % 3) * 70,
         caloriesBurned: 2630 + index * 35 + (index % 2) * 120,
         notes: index === 0 ? "Fictional starter data." : "",
         source: "sample",

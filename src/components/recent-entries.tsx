@@ -1,4 +1,3 @@
-import { calorieBalance } from "@/lib/calculations";
 import { EntryView } from "@/lib/entries";
 
 type RecentEntriesProps = {
@@ -14,15 +13,13 @@ export function RecentEntries({ entries }: RecentEntriesProps) {
         <h2 className="text-lg font-semibold text-zinc-950 dark:text-zinc-50">Recent entries</h2>
       </div>
       <div className="overflow-x-auto">
-        <table className="w-full min-w-[900px] text-left text-sm">
+        <table className="w-full min-w-[760px] text-left text-sm">
           <thead className="bg-zinc-100 text-xs uppercase tracking-wide text-zinc-500 dark:bg-zinc-900 dark:text-zinc-400">
             <tr>
               <Th>Date</Th>
               <Th>Weight</Th>
               <Th>Steps</Th>
-              <Th>Calories eaten</Th>
               <Th>Calories burned</Th>
-              <Th>Deficit/surplus</Th>
               <Th>Source</Th>
               <Th>Notes</Th>
             </tr>
@@ -33,9 +30,7 @@ export function RecentEntries({ entries }: RecentEntriesProps) {
                 <Td>{entry.date}</Td>
                 <Td>{entry.weightKg == null ? "-" : `${entry.weightKg.toFixed(1)} kg`}</Td>
                 <Td>{entry.steps?.toLocaleString() ?? "-"}</Td>
-                <Td>{entry.caloriesEaten?.toLocaleString() ?? "-"}</Td>
                 <Td>{entry.caloriesBurned?.toLocaleString() ?? "-"}</Td>
-                <Td>{formatBalance(calorieBalance(entry))}</Td>
                 <Td>
                   <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium capitalize text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
                     {formatSource(entry.source)}
@@ -57,14 +52,6 @@ function Th({ children }: { children: React.ReactNode }) {
 
 function Td({ children }: { children: React.ReactNode }) {
   return <td className="px-4 py-3 text-zinc-700 dark:text-zinc-300">{children}</td>;
-}
-
-function formatBalance(value: number | null) {
-  if (value == null) {
-    return "-";
-  }
-
-  return `${value > 0 ? "+" : ""}${value.toLocaleString()} kcal`;
 }
 
 function formatSource(source: string) {

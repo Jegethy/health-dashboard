@@ -1,22 +1,30 @@
 # Health Dashboard
 
-A local personal health and weight-loss tracking dashboard built with Next.js App Router, TypeScript, Tailwind CSS, Recharts, SQLite, Prisma, Zod, and date-fns.
+A local personal dashboard for weight, movement, and calorie-burn trends. It is built with Next.js App Router, TypeScript, Tailwind CSS, Recharts, SQLite, Prisma, Zod, and date-fns.
 
-The app supports manual entry, CSV import/export, and Google Health API sync. Fitbit Web API is not used because new Fitbit developer app creation is unavailable.
+The app syncs Google Health data for:
+
+- Weight
+- Steps
+- Total calories burned
+
+It intentionally does not track food intake, calories eaten, hydration, mood, general nutrition, or calorie deficit/surplus.
 
 ## Features
 
-- Daily entries for weight, steps, calories eaten, calories burned, and notes.
-- One entry per date; saving an existing date updates that entry.
-- Summary cards for latest weight, total weight change, 7-day average steps, 7-day calorie balance, and current entry streak.
-- Charts for weight, steps, calories eaten versus burned, and calorie deficit/surplus.
-- Recent entries table sorted newest first, with source indicators.
-- Google Health OAuth connection and date-range sync.
-- CSV export and import using:
+- Google Health OAuth connection and sync.
+- Daily entries for weight, steps, total calories burned, and notes.
+- Manual entry for weigh-ins or corrections.
+- Dashboard summary cards for latest weight, weight change, average steps, average calories burned, and compact data coverage.
+- Charts for weight, steps, and total calories burned.
+- Recent entries table.
+- Dashboard CSV import/export using:
 
 ```csv
-date,weightKg,steps,caloriesEaten,caloriesBurned,notes
+date,weightKg,steps,caloriesBurned,notes
 ```
+
+Older CSV files with `caloriesEaten` are tolerated, but that field is legacy/internal and unused by the dashboard.
 
 ## Install
 
@@ -40,12 +48,6 @@ npm run db:migrate
 npm run db:seed
 ```
 
-You can also run both database creation and seed data in one step:
-
-```bash
-npm run db:setup
-```
-
 `db:migrate` runs an idempotent local SQLite setup script. The Prisma schema remains the source of truth for the application model.
 
 ## Run Locally
@@ -55,6 +57,26 @@ npm run dev
 ```
 
 Open http://127.0.0.1:3000.
+
+## Admin / Data Tools
+
+The main dashboard is intentionally focused. Operational tools live at:
+
+```text
+http://127.0.0.1:3000/admin
+```
+
+The admin page includes:
+
+- Google Health connection status
+- Connect/disconnect Google Health
+- Sync last 7, 30, or 90 days
+- Export Google Health rollup CSV for 7, 30, or 90 days
+- Clear local dashboard entries
+- Clear local entries and sync last 30 days
+- Data coverage details
+
+Reset actions affect local dashboard data only. They do not delete Google Health/Fitbit source data or OAuth tokens.
 
 ## Google Health Integration
 
@@ -71,52 +93,28 @@ INTEGRATION_TOKEN_ENCRYPTION_KEY="a-long-random-local-secret"
 
 Required sync scopes:
 
-- `https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly` for steps and total calories.
+- `https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly` for steps and total calories burned.
 - `https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly` for weight.
 
-After changing scopes, update Google Cloud Data Access and `.env.local`, then disconnect and reconnect Google Health. Existing OAuth grants do not automatically gain new scopes. If the dashboard shows only `activity_and_fitness.readonly`, weight sync will fail or be skipped.
+After changing scopes, update Google Cloud Data Access and `.env.local`, then disconnect and reconnect Google Health.
 
-The local OAuth callback URL is:
+## CSV Import And Export
 
-```text
-http://127.0.0.1:3000/api/integrations/google-health/callback
+Dashboard CSV import/export uses:
+
+```csv
+date,weightKg,steps,caloriesBurned,notes
 ```
 
-After configuring Google Cloud and `.env.local`:
-
-1. Restart the dev server.
-2. Open http://127.0.0.1:3000.
-3. Click Connect Google Health.
-4. Complete Google OAuth consent.
-5. Click Sync last 7 days or Sync last 30 days.
-
-Manual command-line sync after OAuth is connected:
-
-```bash
-npm run sync:google-health
-```
-
-Use a custom day count:
-
-```bash
-$env:GOOGLE_HEALTH_SYNC_DAYS=14; npm run sync:google-health
-```
-
-Safe sync debug logging:
-
-```bash
-GOOGLE_HEALTH_DEBUG_SYNC="true"
-```
-
-This logs rollup field names and mapped values without logging tokens or secrets.
-
-Export Google Health API rollup CSV directly from Google:
+Google Health rollup CSV export calls Google Health directly and is useful for comparing API values with the phone app:
 
 ```text
 http://127.0.0.1:3000/api/integrations/google-health/export-rollup?fromDate=2026-04-01&toDate=2026-04-30
 ```
 
-The Integrations panel also has 7-day and 30-day export buttons. This CSV is different from the dashboard CSV export: dashboard CSV exports local stored rows, while Google Health rollup CSV exports what Google Health currently returns from the API.
+Use the 90-day sync/export buttons if older weigh-ins are outside the current range.
+
+## Local Reset Commands
 
 Clear fictional sample rows only:
 
@@ -130,42 +128,14 @@ Clear all local dashboard health entries only:
 npm run db:clear-health-entries -- --confirm
 ```
 
-This deletes `DailyHealthEntry` rows only. Google Health OAuth tokens, connected account state, sync logs, and the SQLite database file are kept. The dashboard also has a Data reset section where you can type `DELETE` and either clear local entries or clear and immediately sync the last 30 days from Google Health.
-
-Troubleshooting:
-
-- If the Integrations section says Google Health is not configured, check `.env.local` and restart the dev server.
-- If token decryption fails after changing `INTEGRATION_TOKEN_ENCRYPTION_KEY`, disconnect and reconnect Google Health.
-- If Google OAuth reports a redirect mismatch, verify the callback URL in Google Cloud.
-- If Google returns 403, confirm the Google Health API is enabled, Google Cloud Data Access has the requested scopes, `.env.local` matches, and your account is a test user.
-- If Google Health rollup CSV differs from the phone app, the difference is in Google Health API availability/timing rather than the local dashboard database.
-
-See `docs/google-health-setup.md` for full setup details.
-
-## CSV Import And Export
-
-- Export: use the dashboard's Export CSV button.
-- Import: choose a CSV file with the same columns and submit it from the dashboard.
-- Matching dates are updated.
-- New dates are inserted.
-- Negative values are rejected.
+This deletes `DailyHealthEntry` rows only. Google Health OAuth tokens, connected account state, sync logs, and the SQLite database file are kept.
 
 ## Current Limitations
 
 - Local-only app with no authentication.
 - Google Health API is new and may change.
-- Calories eaten is manual/CSV only until Google documents a clear nutrition/calories-eaten API path.
-- Raw Google Health data point export is not implemented yet; the current comparison export uses official daily rollups.
-- No deletion UI yet.
-- CSV parsing handles normal quoted CSV files but is intentionally simple.
-- Metrics such as measurements, gym sessions, sleep, water intake, and mood are planned but not implemented.
+- Weight appears only for dates where Google Health has weigh-in data.
+- Raw Google Health data point export is not implemented; comparison export uses official daily rollups.
+- The database still contains a legacy `caloriesEaten` field from an earlier MVP, but it is unused by the product UI.
 
-## Roadmap
-
-- Add delete entry support.
-- Add optional metrics for sleep, water, mood, body measurements, and gym sessions.
-- Add provider-specific CSV mappers for MyFitnessPal and Samsung Health exports.
-- Add calories-eaten sync if Google Health documents nutrition support.
-- Add import preview and row-level error display.
-
-See `docs/api-integration-plan.md` for the future integration plan.
+See `docs/google-health-setup.md` and `docs/api-integration-plan.md` for more detail.

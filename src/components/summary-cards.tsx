@@ -1,7 +1,7 @@
 import {
-  averageDeficitLast7Days,
+  averageCaloriesBurnedLast7Days,
   averageStepsLast7Days,
-  currentEntryStreak,
+  dataCoverage,
   latestWeight,
   weightChange,
 } from "@/lib/calculations";
@@ -12,11 +12,16 @@ type SummaryCardsProps = {
 };
 
 export function SummaryCards({ entries }: SummaryCardsProps) {
+  const coverage = dataCoverage(entries);
+  const currentWeight = latestWeight(entries);
   const stats = [
     {
       label: "Latest weight",
-      value: formatKg(latestWeight(entries)),
-      detail: "Most recent recorded weigh-in",
+      value: currentWeight == null ? "No recent weigh-ins" : formatKg(currentWeight),
+      detail:
+        currentWeight == null
+          ? "Sync a wider date range or add a manual weigh-in."
+          : "Most recent recorded weigh-in",
     },
     {
       label: "Weight change",
@@ -29,14 +34,14 @@ export function SummaryCards({ entries }: SummaryCardsProps) {
       detail: "Last 7 tracked days",
     },
     {
-      label: "Avg calorie balance",
-      value: formatSignedNumber(averageDeficitLast7Days(entries)),
-      detail: "Burned minus eaten, last 7 days",
+      label: "Avg calories burned",
+      value: formatKcal(averageCaloriesBurnedLast7Days(entries)),
+      detail: "Total calories burned, last 7 tracked days",
     },
     {
-      label: "Entry streak",
-      value: `${currentEntryStreak(entries)} days`,
-      detail: "Consecutive tracked days to latest entry",
+      label: "Data coverage",
+      value: `${coverage.totalDays} days`,
+      detail: `${coverage.totalDays} days with API or local data`,
     },
   ];
 
@@ -74,10 +79,6 @@ function formatNumber(value: number | null) {
   return value == null ? "No data" : Math.round(value).toLocaleString();
 }
 
-function formatSignedNumber(value: number | null) {
-  if (value == null) {
-    return "No data";
-  }
-
-  return `${value > 0 ? "+" : ""}${Math.round(value).toLocaleString()} kcal`;
+function formatKcal(value: number | null) {
+  return value == null ? "No data" : `${Math.round(value).toLocaleString()} kcal`;
 }
