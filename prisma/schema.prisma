@@ -57,3 +57,15 @@ model SyncLog {
   updatedCount Int       @default(0)
   errorCount   Int       @default(0)
 }
+
+model FastingEntry {
+  id              Int      @id @default(autoincrement())
+  startAt         DateTime
+  endAt           DateTime?
+  durationMinutes Int?
+  targetMinutes   Int      @default(960)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([endAt])
+}

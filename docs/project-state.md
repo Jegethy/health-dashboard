@@ -4,6 +4,8 @@
 
 Build a local personal dashboard for tracking weight, movement, and calorie-burn trends over time. The app is for private use on Windows and should stay simple, readable, and easy to extend.
 
+Intermittent fasting is tracked as a separate manual feature with a public read-only dashboard and protected admin management tools.
+
 ## Tech Stack
 
 - Next.js App Router
@@ -24,6 +26,7 @@ The dashboard tracks:
 - Steps
 - Total calories burned
 - Manual corrections for the focused metrics
+- Completed intermittent fasts, separate from Google Health
 
 The app intentionally does not track:
 
@@ -52,8 +55,10 @@ Google Health is the only intended live data source.
 ## Important Pages And Routes
 
 - `/` main dashboard for viewing trends.
+- `/fasting` public read-only intermittent fasting dashboard.
 - `/login` local admin password login.
 - `/admin` protected operational tools and backend controls.
+- `/admin/fasting` protected fasting entry management.
 - `/api/integrations/google-health/connect`
 - `/api/integrations/google-health/callback`
 - `/api/integrations/google-health/sync`
@@ -64,6 +69,11 @@ Google Health is the only intended live data source.
 - `/api/import`
 - `/api/entries`
 - `/api/admin/logout`
+- `/api/fasting`
+- `/api/fasting/[id]`
+- `/api/fasting/start`
+- `/api/fasting/stop`
+- `/api/fasting/cancel-active`
 
 ## Important Scripts
 
@@ -75,6 +85,7 @@ Google Health is the only intended live data source.
 - `npm run db:seed`
 - `npm run db:clear-sample`
 - `npm run db:clear-health-entries -- --confirm`
+- `npm run admin:hash-password`
 - `npm run sync:google-health`
 
 ## Design And Layout
@@ -90,6 +101,15 @@ Main dashboard is intentionally clean and read-only:
 - No Recent entries table on the dashboard
 - Footer: `© 2026 Scott Blackmore. All rights reserved.`
 
+Fasting dashboard is also read-only:
+
+- Header with `Health Dashboard`
+- Navigation: Dashboard, Fasting, Admin / Data tools
+- Title: `Intermittent Fasting`
+- Summary cards: latest fast, average fast, longest fast, target hit rate
+- Active fasting status banner when a fast is running
+- Fasting duration over time chart with a 16-hour target line
+
 Admin page contains operational tools:
 
 - Google Health connection/sync/export controls
@@ -98,11 +118,21 @@ Admin page contains operational tools:
 - CSV import/export
 - Recent entries data inspection
 - Data reset controls
+- Link to protected fasting tools
+
+Admin fasting page contains:
+
+- Start fast now / End fast now controls
+- Add fasting entry form
+- 16-hour preset and repeat-previous helpers
+- Edit/delete completed fasting entries
+- Fasting history table
 
 ## Known Constraints
 
 - Local-only app with a simple single-user admin login for `/admin`.
 - Do not add live integrations beyond Google Health unless explicitly requested.
+- Do not use Google Health as a fasting source unless a clear fasting data type becomes available.
 - Google Health may not return weight unless weigh-in data exists.
 - Google Health does not provide food/calories-eaten in current app scope.
 - `total-calories` rollup requests must stay chunked safely.
@@ -120,6 +150,7 @@ Admin page contains operational tools:
 - Data reset safety confirmation.
 - Do not delete user data or OAuth tokens without explicit confirmation.
 - Keep the Google Health OAuth callback state-protected and reachable by Google's redirect.
+- Keep `/fasting` public/read-only and fasting write routes protected.
 
 ## Recent Completed Work
 
@@ -132,6 +163,7 @@ Admin page contains operational tools:
 - Added shared footer.
 - Removed notes from the visible manual correction and CSV workflow.
 - Added local admin login for `/admin` and backend data/action routes.
+- Added public read-only fasting dashboard and protected fasting management tools.
 
 ## Admin Auth
 
@@ -143,12 +175,25 @@ Admin page contains operational tools:
 - Password hashes are generated with `npm run admin:hash-password`.
 - Session secrets can be generated with `node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"`.
 
+## Fasting
+
+- `FastingEntry` stores completed and active fasts: start, optional end, optional calculated duration, target, timestamps.
+- Default target is 960 minutes, or 16 hours.
+- Duration is recalculated from `startAt` and `endAt` on create/update.
+- Active fasts have `startAt` with null `endAt` and null `durationMinutes`.
+- `/fasting` is public and read-only.
+- `/admin/fasting` is protected by admin login.
+- `POST /api/fasting`, `PUT /api/fasting/[id]`, and `DELETE /api/fasting/[id]` require admin session.
+- `POST /api/fasting/start`, `POST /api/fasting/stop`, and `POST /api/fasting/cancel-active` require admin session.
+- `GET /api/fasting` is public and returns read-only fasting entries.
+- Fasting is manual; Google Health is not used for fasting data.
+- Active fasts are shown separately and do not affect completed-fast summaries or charts until ended.
+- Future automation could add reminders, phone shortcuts, or CSV import/export.
+
 ## Recommended Next Task
 
-Improve chart readability and custom tooltips:
+Polish fasting workflow after real use:
 
-- Format dates clearly in tooltips.
-- Format large numbers with separators.
-- Show units: kg, steps, kcal.
-- Improve axis tick density for 30- and 90-day ranges.
-- Keep the visual design quiet and dashboard-focused.
+- Consider fasting CSV import/export if manual history grows.
+- Add reminders or phone shortcuts only if they stay local and simple.
+- Keep `/fasting` read-only and uncluttered.

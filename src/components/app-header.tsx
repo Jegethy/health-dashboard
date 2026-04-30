@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 type AppHeaderProps = {
-  active: "dashboard" | "admin";
+  active: "dashboard" | "fasting" | "admin";
 };
 
 export function AppHeader({ active }: AppHeaderProps) {
@@ -19,6 +19,9 @@ export function AppHeader({ active }: AppHeaderProps) {
         <nav className="flex flex-wrap items-center gap-2 text-sm">
           <NavLink href="/" active={active === "dashboard"}>
             Dashboard
+          </NavLink>
+          <NavLink href="/fasting" active={active === "fasting"}>
+            Fasting
           </NavLink>
           <NavLink href="/admin" active={active === "admin"}>
             Admin / Data tools

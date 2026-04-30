@@ -2,6 +2,8 @@
 
 A local personal dashboard for weight, movement, and calorie-burn trends. It is built with Next.js App Router, TypeScript, Tailwind CSS, Recharts, SQLite, Prisma, Zod, and date-fns.
 
+It also supports manual intermittent fasting tracking as a separate read-only dashboard.
+
 The app syncs Google Health data for:
 
 - Weight
@@ -17,6 +19,8 @@ It intentionally does not track food intake, calories eaten, hydration, mood, ge
 - Manual correction tools for date, weight, steps, and calories burned.
 - Dashboard summary cards for latest weight, weight change, average steps, and average calories burned.
 - Charts for weight, steps, and total calories burned.
+- Public read-only fasting dashboard for completed fast duration trends.
+- Protected fasting management tools for starting, ending, adding, editing, and deleting fasts.
 - Recent entries table in Admin / Data tools.
 - CSV import/export from Admin / Data tools using:
 
@@ -75,6 +79,7 @@ The admin page includes:
 - Recent entries inspection
 - Manual corrections
 - Local CSV import/export
+- Fasting entry management
 - Clear local dashboard entries
 - Clear local entries and sync last 30 days
 - Data coverage details
@@ -134,6 +139,24 @@ Go to http://127.0.0.1:3000/admin to log in. The login page redirects back to `/
 
 Protected backend routes include `/api/admin/*`, `/api/export`, `/api/import`, `/api/entries`, and Google Health connect/disconnect/sync/export routes. The Google Health OAuth callback remains available for Google's redirect and is still protected by OAuth state validation.
 
+## Intermittent Fasting
+
+The fasting dashboard is public and read-only:
+
+```text
+http://127.0.0.1:3000/fasting
+```
+
+It shows active fasting status when a fast is running, latest completed fast, average fast, longest fast, target hit rate, and a fasting duration chart with a 16-hour target reference line.
+
+Fasting entries are managed in the protected admin area:
+
+```text
+http://127.0.0.1:3000/admin/fasting
+```
+
+Fasting data is manual because Google Health does not currently provide a clear intermittent fasting data type. The fixed fasting target is 16 hours. Use Start fast now / End fast now for autonomous tracking, or add completed fasts manually for corrections. Active fasts are shown separately and do not affect averages until completed. The app still does not track food intake, calories eaten, hydration, nutrition, mood, or deficit/surplus.
+
 ## CSV Import And Export
 
 Admin / Data tools CSV import/export uses:
@@ -172,6 +195,7 @@ This deletes `DailyHealthEntry` rows only. Google Health OAuth tokens, connected
 - Google Health API is new and may change.
 - Weight appears only for dates where Google Health has weigh-in data.
 - Raw Google Health data point export is not implemented; comparison export uses official daily rollups.
+- Fasting CSV import/export is future work.
 - The database still contains a legacy `caloriesEaten` field from an earlier MVP, but it is unused by the product UI.
 - The database still contains legacy `notes` and source-tracking fields, but notes/source are not part of the normal user-facing workflow.
 
