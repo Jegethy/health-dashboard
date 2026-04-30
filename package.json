@@ -13,7 +13,9 @@
     "db:seed": "node prisma/seed.js",
     "db:clear-sample": "node scripts/clear-sample-data.js",
     "db:clear-health-entries": "tsx scripts/clear-health-entries.ts",
+    "db:backup": "tsx scripts/backup-database.ts",
     "admin:hash-password": "tsx scripts/hash-admin-password.ts",
+    "sync:daily": "tsx scripts/sync-daily.ts",
     "sync:google-health": "tsx scripts/sync-google-health.ts",
     "sync:fitbit": "node -e \"console.error('sync:fitbit has been removed because Fitbit Web API new app creation is unavailable. Use npm run sync:google-health.'); process.exit(1)\""
   },

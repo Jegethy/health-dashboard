@@ -3,6 +3,7 @@ import "server-only";
 import crypto from "crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { getAdminAuthConfigStatus } from "@/lib/env";
 
 const ADMIN_SESSION_COOKIE = "health_dashboard_admin";
 const SESSION_MAX_AGE_SECONDS = 12 * 60 * 60;
@@ -31,7 +32,7 @@ export function getSafeNextPath(value: FormDataEntryValue | string | string[] | 
 }
 
 export function isAdminAuthConfigured() {
-  return Boolean(process.env.ADMIN_PASSWORD_HASH && process.env.ADMIN_SESSION_SECRET);
+  return getAdminAuthConfigStatus().configured;
 }
 
 export async function verifyAdminPassword(password: string) {

@@ -1,3 +1,5 @@
+import { envValue } from "@/lib/env";
+
 export const GOOGLE_HEALTH_PROVIDER = "google_health";
 export const GOOGLE_HEALTH_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 export const GOOGLE_HEALTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
@@ -28,16 +30,16 @@ export type GoogleHealthConfig = {
 };
 
 export function getGoogleHealthConfig(): GoogleHealthConfig {
-  const scopes = process.env.GOOGLE_HEALTH_SCOPES?.trim() || DEFAULT_GOOGLE_HEALTH_SCOPES;
+  const scopes = envValue("GOOGLE_HEALTH_SCOPES") || DEFAULT_GOOGLE_HEALTH_SCOPES;
 
   return {
-    clientId: process.env.GOOGLE_HEALTH_CLIENT_ID?.trim() ?? "",
-    clientSecret: process.env.GOOGLE_HEALTH_CLIENT_SECRET?.trim() ?? "",
+    clientId: envValue("GOOGLE_HEALTH_CLIENT_ID"),
+    clientSecret: envValue("GOOGLE_HEALTH_CLIENT_SECRET"),
     redirectUri:
-      process.env.GOOGLE_HEALTH_REDIRECT_URI?.trim() ??
+      envValue("GOOGLE_HEALTH_REDIRECT_URI") ||
       "http://127.0.0.1:3000/api/integrations/google-health/callback",
     scopes: scopes.split(/\s+/).filter(Boolean),
-    encryptionKey: process.env.INTEGRATION_TOKEN_ENCRYPTION_KEY?.trim() ?? "",
+    encryptionKey: envValue("INTEGRATION_TOKEN_ENCRYPTION_KEY"),
   };
 }
 

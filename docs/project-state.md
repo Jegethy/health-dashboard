@@ -69,6 +69,7 @@ Google Health is the only intended live data source.
 - `/api/import`
 - `/api/entries`
 - `/api/admin/logout`
+- `/api/admin/backup-database`
 - `/api/fasting`
 - `/api/fasting/[id]`
 - `/api/fasting/start`
@@ -85,7 +86,9 @@ Google Health is the only intended live data source.
 - `npm run db:seed`
 - `npm run db:clear-sample`
 - `npm run db:clear-health-entries -- --confirm`
+- `npm run db:backup`
 - `npm run admin:hash-password`
+- `npm run sync:daily`
 - `npm run sync:google-health`
 
 ## Design And Layout
@@ -119,6 +122,8 @@ Admin page contains operational tools:
 - Recent entries data inspection
 - Data reset controls
 - Link to protected fasting tools
+- System status panel with safe local metadata
+- Protected database backup button
 
 Admin fasting page contains:
 
@@ -137,7 +142,9 @@ Admin fasting page contains:
 - Google Health does not provide food/calories-eaten in current app scope.
 - `total-calories` rollup requests must stay chunked safely.
 - SQLite DB and `.env.local` are local/private and ignored by Git.
+- `backups/` and `logs/` are ignored by Git.
 - `ADMIN_PASSWORD_HASH` and `ADMIN_SESSION_SECRET` live in `.env.local`.
+- App remains local/home-server focused. Shared hosting without Node.js, such as NFO shared web hosting, is not a target.
 
 ## Things Not To Break
 
@@ -164,6 +171,7 @@ Admin fasting page contains:
 - Removed notes from the visible manual correction and CSV workflow.
 - Added local admin login for `/admin` and backend data/action routes.
 - Added public read-only fasting dashboard and protected fasting management tools.
+- Added database backup support, daily sync script, and Windows Task Scheduler docs.
 
 ## Admin Auth
 
@@ -190,10 +198,21 @@ Admin fasting page contains:
 - Active fasts are shown separately and do not affect completed-fast summaries or charts until ended.
 - Future automation could add reminders, phone shortcuts, or CSV import/export.
 
+## Maintenance
+
+- `npm run db:backup` creates timestamped SQLite backups in `backups/`.
+- `POST /api/admin/backup-database` creates a backup from the protected admin UI.
+- `npm run sync:daily` syncs Google Health for the last 14 days without clearing entries.
+- `docs/windows-task-scheduler.md` explains how to schedule daily sync on Windows.
+- `src/lib/env.ts` centralizes server-side environment status helpers.
+- `src/lib/api-response.ts` centralizes small JSON/auth/revalidation helpers for API routes.
+- `src/lib/database-backup.ts` centralizes SQLite backup path and copy logic.
+
 ## Recommended Next Task
 
 Polish fasting workflow after real use:
 
 - Consider fasting CSV import/export if manual history grows.
+- Home Assistant fasting automation is the next likely feature, but should stay separate from Google Health sync.
 - Add reminders or phone shortcuts only if they stay local and simple.
 - Keep `/fasting` read-only and uncluttered.

@@ -1,10 +1,8 @@
-import { NextResponse } from "next/server";
-import { revalidatePath } from "next/cache";
-import { requireAdminApi } from "@/lib/admin-auth";
+import { jsonError, jsonOk, requireAdminJson, revalidateAppPaths } from "@/lib/api-response";
 import { cancelActiveFast } from "@/lib/fasting";
 
 export async function POST() {
-  const unauthorized = await requireAdminApi();
+  const unauthorized = await requireAdminJson();
 
   if (unauthorized) {
     return unauthorized;
@@ -13,17 +11,12 @@ export async function POST() {
   try {
     await cancelActiveFast();
     revalidateFastingPaths();
-    return NextResponse.json({ ok: true });
+    return jsonOk({ ok: true });
   } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not cancel active fast." },
-      { status: 400 },
-    );
+    return jsonError(error instanceof Error ? error.message : "Could not cancel active fast.");
   }
 }
 
 function revalidateFastingPaths() {
-  revalidatePath("/fasting");
-  revalidatePath("/admin");
-  revalidatePath("/admin/fasting");
+  revalidateAppPaths(["/fasting", "/admin", "/admin/fasting"]);
 }

@@ -80,6 +80,7 @@ The admin page includes:
 - Manual corrections
 - Local CSV import/export
 - Fasting entry management
+- System status and database backup
 - Clear local dashboard entries
 - Clear local entries and sync last 30 days
 - Data coverage details
@@ -189,6 +190,36 @@ npm run db:clear-health-entries -- --confirm
 
 This deletes `DailyHealthEntry` rows only. Google Health OAuth tokens, connected account state, sync logs, and the SQLite database file are kept.
 
+## Backups
+
+Create a timestamped local SQLite backup:
+
+```bash
+npm run db:backup
+```
+
+Backups are stored in:
+
+```text
+backups/
+```
+
+The backup command copies the SQLite database file and does not delete or modify the original. The protected Admin / Data tools page also has a Create database backup button.
+
+Manual restore is intentionally simple: stop the dev/server process, copy the desired backup `.db` file over the active SQLite database file, then start the app again. Keep backups local and do not commit them.
+
+## Daily Sync
+
+Run a scheduled-friendly sync for the last 14 days:
+
+```bash
+npm run sync:daily
+```
+
+This uses the same Google Health sync code as `npm run sync:google-health`, does not clear entries, and requires an already connected Google Health account.
+
+For Windows Task Scheduler instructions, see `docs/windows-task-scheduler.md`.
+
 ## Current Limitations
 
 - Local personal app with a simple single-user admin login.
@@ -196,6 +227,7 @@ This deletes `DailyHealthEntry` rows only. Google Health OAuth tokens, connected
 - Weight appears only for dates where Google Health has weigh-in data.
 - Raw Google Health data point export is not implemented; comparison export uses official daily rollups.
 - Fasting CSV import/export is future work.
+- Local/home-server deployment is the target for now. Shared hosting that cannot run Node.js, such as NFO shared web hosting, is not suitable; use Node-capable hosting, a VPS, or a home server if deploying later.
 - The database still contains a legacy `caloriesEaten` field from an earlier MVP, but it is unused by the product UI.
 - The database still contains legacy `notes` and source-tracking fields, but notes/source are not part of the normal user-facing workflow.
 
