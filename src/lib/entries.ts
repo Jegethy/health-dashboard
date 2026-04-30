@@ -63,9 +63,13 @@ export async function upsertEntry(input: EntryInput, source = "manual"): Promise
 }
 
 async function seedIfEmpty() {
-  const count = await prisma.dailyHealthEntry.count();
+  const [count, integrationCount, syncLogCount] = await Promise.all([
+    prisma.dailyHealthEntry.count(),
+    prisma.integrationAccount.count(),
+    prisma.syncLog.count(),
+  ]);
 
-  if (count > 0) {
+  if (count > 0 || integrationCount > 0 || syncLogCount > 0) {
     return;
   }
 

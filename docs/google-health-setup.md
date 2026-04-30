@@ -89,6 +89,31 @@ $env:GOOGLE_HEALTH_SYNC_DAYS=14; npm run sync:google-health
 
 This can be used later with Windows Task Scheduler. The project does not configure Task Scheduler automatically.
 
+## Google Health Rollup CSV Export
+
+The dashboard Integrations panel includes:
+
+- Export Google Health rollup CSV: last 7 days
+- Export Google Health rollup CSV: last 30 days
+
+These exports call Google Health directly and do not read from `DailyHealthEntry`. Use them to compare the API values against the Fitbit/phone app.
+
+Direct URL format:
+
+```text
+http://127.0.0.1:3000/api/integrations/google-health/export-rollup?fromDate=2026-04-01&toDate=2026-04-30
+```
+
+CSV columns:
+
+```text
+date,googleHealthSteps,googleHealthTotalCaloriesBurned,googleHealthWeightKg,stepsRawFields,caloriesRawFields,weightRawFields,warnings
+```
+
+`total-calories` rollup requests are chunked into 14-day ranges because Google Health daily rollup documents a 14-day maximum range for `total-calories`.
+
+Raw data point export is not implemented in this pass. The official discovery document clearly supports `dataPoints.list`, but `total-calories` appears as a rollup data type rather than a normal `DataPoint` union field, so the safer comparison tool is the daily rollup CSV.
+
 ## Debug Sync Output
 
 Set this in `.env.local` to print safe rollup diagnostics during sync:
@@ -107,6 +132,29 @@ To remove fictional seed/sample rows without deleting manual, CSV, mixed, or Goo
 npm run db:clear-sample
 ```
 
+## Clearing Local Health Entries
+
+To remove all local dashboard health entries and keep Google Health connected:
+
+```bash
+npm run db:clear-health-entries -- --confirm
+```
+
+Without `--confirm`, the command refuses to delete anything:
+
+```bash
+npm run db:clear-health-entries
+```
+
+This deletes `DailyHealthEntry` rows only. It does not delete `IntegrationAccount`, OAuth tokens, `SyncLog`, or the SQLite database file.
+
+The dashboard also has a Data reset section. Type `DELETE`, then choose:
+
+- Clear local health entries
+- Clear and sync last 30 days
+
+Clear and sync requires Google Health to already be connected. If Google Health is not connected, no local entries are deleted by that combined action.
+
 ## Troubleshooting
 
 - `GOOGLE_HEALTH_CLIENT_ID is missing`: add Google Health variables to `.env.local` and restart the dev server.
@@ -115,5 +163,6 @@ npm run db:clear-sample
 - Missing refresh token: disconnect and reconnect; the app requests offline access and consent.
 - Weight 403 or skipped weight: confirm Google Cloud Data Access and `.env.local` include `https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly`, then disconnect and reconnect.
 - 403 errors: confirm the Google Health API is enabled, the OAuth consent screen includes the required scopes, and your Google account is added as a test user.
+- Phone app mismatch: export Google Health rollup CSV. If the rollup export differs from the phone app, the mismatch is upstream/API availability or delay, not the local dashboard table.
 
 Google Health API is new and may still change. If Google changes endpoint, scope, or response details, update the provider adapter rather than dashboard components.

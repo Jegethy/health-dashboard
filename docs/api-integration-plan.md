@@ -19,6 +19,7 @@ The provider code lives under `src/lib/integrations`. Dashboard components shoul
 - Calls `users/me/identity` to store Google Health and legacy Fitbit identifiers when available.
 - Syncs daily `steps`, `total-calories`, and `weight` using `dataPoints:dailyRollUp`.
 - Requires `activity_and_fitness.readonly` for steps/total calories and `health_metrics_and_measurements.readonly` for weight.
+- Provides a direct Google Health rollup CSV export for comparing API output against the phone app.
 - Preserves notes.
 - Does not overwrite existing fields with null when Google Health has no value.
 - Marks entries as `google_health` or `mixed` in the dashboard source column.
@@ -63,4 +64,5 @@ Future options:
 2. Add import previews and row-level sync/import messages.
 3. Add optional models for sleep, body measurements, mood, water, and gym sessions.
 4. Add calories-eaten sync only if Google documents a supported nutrition data type.
-5. Add Samsung Health or Health Connect import paths if they become useful.
+5. Add raw data point export if the data type mapping is clear for all supported dashboard metrics.
+6. Add Samsung Health or Health Connect import paths if they become useful.

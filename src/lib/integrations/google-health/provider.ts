@@ -1,6 +1,5 @@
-import { addDays, differenceInCalendarDays } from "date-fns";
+import { differenceInCalendarDays } from "date-fns";
 import { parseDateInput } from "@/lib/dates";
-import { googleHealthFetch } from "@/lib/integrations/google-health/client";
 import {
   GOOGLE_HEALTH_PROVIDER,
   REQUIRED_GOOGLE_HEALTH_SYNC_SCOPES,
@@ -8,23 +7,14 @@ import {
   getGoogleHealthConfig,
   getMissingRequiredGoogleHealthScopes,
 } from "@/lib/integrations/google-health/config";
+import {
+  civilDateToString,
+  debugSync,
+  fetchGoogleHealthDailyRollup,
+  rollupPointRawFields,
+} from "@/lib/integrations/google-health/rollup";
 import { HealthDataProvider, ProviderStatus, SyncSummary } from "@/lib/integrations/types";
 import { prisma } from "@/lib/prisma";
-
-type CivilDateTime = {
-  date?: { year?: number; month?: number; day?: number };
-};
-
-type DailyRollupDataPoint = {
-  civilStartTime?: CivilDateTime;
-  steps?: { countSum?: string };
-  totalCalories?: { kcalSum?: number };
-  weight?: { weightGramsAvg?: number };
-};
-
-type DailyRollupResponse = {
-  rollupDataPoints?: DailyRollupDataPoint[];
-};
 
 type GoogleHealthMetric = {
   date: string;
@@ -203,15 +193,9 @@ async function fetchGoogleHealthMetrics(
           endInclusive: toDate,
         },
       });
-      const response = await dailyRollup(dataType, fromDate, toDate);
-      debugSync({
-        dataType,
-        fromDate,
-        toDate,
-        rollupPointCount: response.rollupDataPoints?.length ?? 0,
-      });
+      const points = await fetchGoogleHealthDailyRollup(dataType, fromDate, toDate);
 
-      for (const point of response.rollupDataPoints ?? []) {
+      for (const point of points) {
         const date = civilDateToString(point.civilStartTime);
 
         if (!date) {
@@ -241,7 +225,7 @@ async function fetchGoogleHealthMetrics(
           fromDate,
           toDate,
           date,
-          rawFields: Object.keys(point).filter((key) => key !== "civilStartTime" && key !== "civilEndTime"),
+          rawFields: rollupPointRawFields(point),
           rawValues: {
             countSum: point.steps?.countSum,
             kcalSum: point.totalCalories?.kcalSum,
@@ -257,29 +241,6 @@ async function fetchGoogleHealthMetrics(
   }
 
   return metrics;
-}
-
-async function dailyRollup(
-  dataType: (typeof SYNC_DATA_TYPES)[number],
-  fromDate: string,
-  toDate: string,
-) {
-  const exclusiveEnd = addDays(parseDateInput(toDate), 1).toISOString().slice(0, 10);
-
-  return googleHealthFetch<DailyRollupResponse>(
-    `/v4/users/me/dataTypes/${dataType}/dataPoints:dailyRollUp`,
-    {
-      method: "POST",
-      body: JSON.stringify({
-        range: {
-          start: { date: dateToGoogleDate(fromDate) },
-          end: { date: dateToGoogleDate(exclusiveEnd) },
-        },
-        windowSizeDays: 1,
-        pageSize: 100,
-      }),
-    },
-  );
 }
 
 async function upsertGoogleHealthMetric(metric: GoogleHealthMetric) {
@@ -330,29 +291,6 @@ function mergeMetric(
   });
 }
 
-function dateToGoogleDate(date: string) {
-  const [year, month, day] = date.split("-").map(Number);
-  return { year, month, day };
-}
-
-function civilDateToString(civilDateTime?: CivilDateTime) {
-  const date = civilDateTime?.date;
-
-  if (!date?.year || !date.month || !date.day) {
-    return null;
-  }
-
-  return `${date.year}-${String(date.month).padStart(2, "0")}-${String(date.day).padStart(2, "0")}`;
-}
-
 function errorMessage(error: unknown) {
   return error instanceof Error ? error.message : "Unknown Google Health API error.";
-}
-
-function debugSync(payload: Record<string, unknown>) {
-  if (process.env.GOOGLE_HEALTH_DEBUG_SYNC !== "true") {
-    return;
-  }
-
-  console.log("[google-health-sync]", JSON.stringify(payload));
 }

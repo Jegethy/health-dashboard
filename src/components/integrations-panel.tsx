@@ -16,6 +16,8 @@ export function IntegrationsPanel({ googleHealthStatus, initialMessage }: Integr
     initialMessage ?? googleHealthStatus.configError,
   );
   const [isSyncing, setIsSyncing] = useState(false);
+  const [resetConfirmation, setResetConfirmation] = useState("");
+  const [isResetting, setIsResetting] = useState(false);
 
   useEffect(() => {
     if (window.location.search) {
@@ -64,6 +66,60 @@ export function IntegrationsPanel({ googleHealthStatus, initialMessage }: Integr
 
     setMessage("Google Health disconnected. Existing health entries were kept.");
     router.refresh();
+  }
+
+  async function clearEntries() {
+    setIsResetting(true);
+    setMessage(null);
+
+    const response = await fetch("/api/admin/clear-health-entries", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ confirmation: resetConfirmation }),
+    });
+    const result = await response.json();
+
+    setIsResetting(false);
+
+    if (!response.ok) {
+      setMessage(result.error ?? "Could not clear local health entries.");
+      return;
+    }
+
+    setMessage(`Deleted ${result.deletedCount} local health entries. Google Health remains connected.`);
+    setResetConfirmation("");
+    router.refresh();
+  }
+
+  async function clearAndSync() {
+    setIsResetting(true);
+    setMessage(null);
+
+    const response = await fetch("/api/admin/clear-and-sync-google-health", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ confirmation: resetConfirmation }),
+    });
+    const result = await response.json();
+
+    setIsResetting(false);
+
+    if (!response.ok) {
+      setMessage(result.error ?? "Could not clear and sync Google Health.");
+      return;
+    }
+
+    setMessage(
+      `Deleted ${result.deletedCount} local entries. Google Health sync: ${result.createdCount} created, ${result.updatedCount} updated, ${result.skippedFields} skipped field(s), ${result.errorCount} error(s).`,
+    );
+    setResetConfirmation("");
+    router.refresh();
+  }
+
+  function exportRollup(days: number) {
+    const toDate = format(new Date(), "yyyy-MM-dd");
+    const fromDate = format(subDays(new Date(), days - 1), "yyyy-MM-dd");
+    window.location.href = `/api/integrations/google-health/export-rollup?fromDate=${fromDate}&toDate=${toDate}`;
   }
 
   return (
@@ -122,6 +178,22 @@ export function IntegrationsPanel({ googleHealthStatus, initialMessage }: Integr
           >
             Disconnect
           </button>
+          <button
+            type="button"
+            disabled={!googleHealthStatus.connected}
+            onClick={() => exportRollup(7)}
+            className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-900"
+          >
+            Export rollup CSV: 7 days
+          </button>
+          <button
+            type="button"
+            disabled={!googleHealthStatus.connected}
+            onClick={() => exportRollup(30)}
+            className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-900"
+          >
+            Export rollup CSV: 30 days
+          </button>
         </div>
       </div>
       {message ? <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">{message}</p> : null}
@@ -136,6 +208,42 @@ export function IntegrationsPanel({ googleHealthStatus, initialMessage }: Integr
           Add the Google Health values from .env.example to .env.local, then restart the dev server.
         </p>
       ) : null}
+      <div className="mt-5 border-t border-zinc-200 pt-5 dark:border-zinc-800">
+        <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Data reset</h3>
+        <p className="mt-2 max-w-3xl text-sm text-zinc-600 dark:text-zinc-400">
+          These actions delete local dashboard health entries only. Google Health connection,
+          OAuth tokens, sync logs, and Google/Fitbit source data are kept. Type DELETE to enable.
+        </p>
+        <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <input
+            value={resetConfirmation}
+            onChange={(event) => setResetConfirmation(event.target.value)}
+            placeholder="Type DELETE"
+            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-red-600 focus:ring-2 focus:ring-red-600/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50 sm:max-w-xs"
+          />
+          <button
+            type="button"
+            disabled={resetConfirmation !== "DELETE" || isResetting}
+            onClick={clearEntries}
+            className="rounded-md border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40"
+          >
+            Clear local health entries
+          </button>
+          <button
+            type="button"
+            disabled={resetConfirmation !== "DELETE" || isResetting || !googleHealthStatus.connected}
+            onClick={clearAndSync}
+            className="rounded-md bg-red-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-red-800 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            Clear and sync last 30 days
+          </button>
+        </div>
+        <p className="mt-3 max-w-3xl text-xs text-zinc-500 dark:text-zinc-500">
+          Dashboard CSV export downloads local stored data. Google Health rollup CSV export asks
+          Google Health directly; use it to compare API values with the phone app. If those values
+          differ, the discrepancy is upstream/API availability rather than the local dashboard table.
+        </p>
+      </div>
     </section>
   );
 }

@@ -110,11 +110,27 @@ GOOGLE_HEALTH_DEBUG_SYNC="true"
 
 This logs rollup field names and mapped values without logging tokens or secrets.
 
+Export Google Health API rollup CSV directly from Google:
+
+```text
+http://127.0.0.1:3000/api/integrations/google-health/export-rollup?fromDate=2026-04-01&toDate=2026-04-30
+```
+
+The Integrations panel also has 7-day and 30-day export buttons. This CSV is different from the dashboard CSV export: dashboard CSV exports local stored rows, while Google Health rollup CSV exports what Google Health currently returns from the API.
+
 Clear fictional sample rows only:
 
 ```bash
 npm run db:clear-sample
 ```
+
+Clear all local dashboard health entries only:
+
+```bash
+npm run db:clear-health-entries -- --confirm
+```
+
+This deletes `DailyHealthEntry` rows only. Google Health OAuth tokens, connected account state, sync logs, and the SQLite database file are kept. The dashboard also has a Data reset section where you can type `DELETE` and either clear local entries or clear and immediately sync the last 30 days from Google Health.
 
 Troubleshooting:
 
@@ -122,6 +138,7 @@ Troubleshooting:
 - If token decryption fails after changing `INTEGRATION_TOKEN_ENCRYPTION_KEY`, disconnect and reconnect Google Health.
 - If Google OAuth reports a redirect mismatch, verify the callback URL in Google Cloud.
 - If Google returns 403, confirm the Google Health API is enabled, Google Cloud Data Access has the requested scopes, `.env.local` matches, and your account is a test user.
+- If Google Health rollup CSV differs from the phone app, the difference is in Google Health API availability/timing rather than the local dashboard database.
 
 See `docs/google-health-setup.md` for full setup details.
 
@@ -138,6 +155,7 @@ See `docs/google-health-setup.md` for full setup details.
 - Local-only app with no authentication.
 - Google Health API is new and may change.
 - Calories eaten is manual/CSV only until Google documents a clear nutrition/calories-eaten API path.
+- Raw Google Health data point export is not implemented yet; the current comparison export uses official daily rollups.
 - No deletion UI yet.
 - CSV parsing handles normal quoted CSV files but is intentionally simple.
 - Metrics such as measurements, gym sessions, sleep, water intake, and mood are planned but not implemented.
