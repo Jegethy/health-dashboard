@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { requireAdminApi } from "@/lib/admin-auth";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
+  const unauthorized = await requireAdminApi();
+
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const body = await request.json().catch(() => null);
 
   if (body?.confirmation !== "DELETE") {
@@ -14,6 +21,7 @@ export async function POST(request: Request) {
 
   const result = await prisma.dailyHealthEntry.deleteMany();
   revalidatePath("/");
+  revalidatePath("/admin");
 
   return NextResponse.json({ deletedCount: result.count });
 }

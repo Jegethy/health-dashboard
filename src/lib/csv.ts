@@ -6,7 +6,6 @@ const headers = [
   "weightKg",
   "steps",
   "caloriesBurned",
-  "notes",
 ] as const;
 
 const optionalImportHeaders = ["caloriesEaten"] as const;
@@ -18,7 +17,6 @@ export function entriesToCsv(entries: EntryView[]): string {
       entry.weightKg,
       entry.steps,
       entry.caloriesBurned,
-      entry.notes,
     ].map(formatCsvCell),
   );
 

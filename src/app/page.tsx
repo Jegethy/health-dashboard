@@ -1,7 +1,6 @@
 import { AppHeader } from "@/components/app-header";
 import { AppFooter } from "@/components/app-footer";
 import { HealthCharts } from "@/components/health-charts";
-import { RecentEntries } from "@/components/recent-entries";
 import { SummaryCards } from "@/components/summary-cards";
 import { getEntries } from "@/lib/entries";
 
@@ -17,7 +16,6 @@ export default async function Home() {
 
         <SummaryCards entries={entries} />
         <HealthCharts entries={entries} />
-        <RecentEntries entries={entries} />
       </div>
       <AppFooter />
     </main>

@@ -42,7 +42,7 @@ export function ImportExport() {
             CSV import/export
           </h2>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Uses date, weightKg, steps, caloriesBurned, notes.
+            Uses date, weightKg, steps, caloriesBurned.
           </p>
         </div>
         <a

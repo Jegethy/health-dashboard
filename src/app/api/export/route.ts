@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
+import { requireAdminApi } from "@/lib/admin-auth";
 import { entriesToCsv } from "@/lib/csv";
 import { getEntries } from "@/lib/entries";
 
 export async function GET() {
+  const unauthorized = await requireAdminApi();
+
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const entries = await getEntries();
   const csv = entriesToCsv(entries);
 

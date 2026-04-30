@@ -13,18 +13,18 @@ It intentionally does not track food intake, calories eaten, hydration, mood, ge
 ## Features
 
 - Google Health OAuth connection and sync.
-- Daily entries for weight, steps, total calories burned, and notes.
-- Manual entry for weigh-ins or corrections.
-- Dashboard summary cards for latest weight, weight change, average steps, average calories burned, and compact data coverage.
+- Daily entries for weight, steps, and total calories burned.
+- Manual correction tools for date, weight, steps, and calories burned.
+- Dashboard summary cards for latest weight, weight change, average steps, and average calories burned.
 - Charts for weight, steps, and total calories burned.
-- Recent entries table.
+- Recent entries table in Admin / Data tools.
 - CSV import/export from Admin / Data tools using:
 
 ```csv
-date,weightKg,steps,caloriesBurned,notes
+date,weightKg,steps,caloriesBurned
 ```
 
-Older CSV files with `caloriesEaten` are tolerated, but that field is legacy/internal and unused by the dashboard.
+Older CSV files with `caloriesEaten` or `notes` are tolerated, but those fields are legacy/internal and unused by the dashboard.
 
 ## Install
 
@@ -72,11 +72,14 @@ The admin page includes:
 - Connect/disconnect Google Health
 - Sync last 7, 30, or 90 days
 - Export Google Health rollup CSV for 7, 30, or 90 days
+- Recent entries inspection
+- Manual corrections
+- Local CSV import/export
 - Clear local dashboard entries
 - Clear local entries and sync last 30 days
 - Data coverage details
 
-Reset actions affect local dashboard data only. They do not delete Google Health/Fitbit source data or OAuth tokens.
+Reset actions affect local dashboard data only. They do not delete Google Health account data or OAuth tokens.
 
 ## Google Health Integration
 
@@ -89,6 +92,8 @@ GOOGLE_HEALTH_REDIRECT_URI="http://127.0.0.1:3000/api/integrations/google-health
 GOOGLE_HEALTH_SCOPES="https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly https://www.googleapis.com/auth/googlehealth.profile.readonly"
 GOOGLE_HEALTH_DEBUG_SYNC="false"
 INTEGRATION_TOKEN_ENCRYPTION_KEY="a-long-random-local-secret"
+ADMIN_PASSWORD_HASH="generated-admin-password-hash"
+ADMIN_SESSION_SECRET="a-long-random-admin-session-secret"
 ```
 
 Required sync scopes:
@@ -98,12 +103,43 @@ Required sync scopes:
 
 After changing scopes, update Google Cloud Data Access and `.env.local`, then disconnect and reconnect Google Health.
 
+## Local Admin Login
+
+The main dashboard at `/` is public on the local network. Admin / Data tools at `/admin` and the backend action routes are protected by a single local admin password and a signed HTTP-only session cookie. This is a simple single-user admin login, not a registration or multi-user account system.
+
+Generate an admin password hash:
+
+```bash
+npm run admin:hash-password
+```
+
+Copy the printed `ADMIN_PASSWORD_HASH` value into `.env.local`.
+
+Generate a session secret:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+Add both values to `.env.local`:
+
+```bash
+ADMIN_PASSWORD_HASH="paste-the-generated-hash"
+ADMIN_SESSION_SECRET="paste-a-random-session-secret"
+```
+
+Do not commit `.env.local`.
+
+Go to http://127.0.0.1:3000/admin to log in. The login page redirects back to `/admin` after success. Use the Logout button on `/admin` to clear the session cookie.
+
+Protected backend routes include `/api/admin/*`, `/api/export`, `/api/import`, `/api/entries`, and Google Health connect/disconnect/sync/export routes. The Google Health OAuth callback remains available for Google's redirect and is still protected by OAuth state validation.
+
 ## CSV Import And Export
 
 Admin / Data tools CSV import/export uses:
 
 ```csv
-date,weightKg,steps,caloriesBurned,notes
+date,weightKg,steps,caloriesBurned
 ```
 
 Google Health rollup CSV export calls Google Health directly and is useful for comparing API values with the phone app:
@@ -132,10 +168,11 @@ This deletes `DailyHealthEntry` rows only. Google Health OAuth tokens, connected
 
 ## Current Limitations
 
-- Local-only app with no authentication.
+- Local personal app with a simple single-user admin login.
 - Google Health API is new and may change.
 - Weight appears only for dates where Google Health has weigh-in data.
 - Raw Google Health data point export is not implemented; comparison export uses official daily rollups.
 - The database still contains a legacy `caloriesEaten` field from an earlier MVP, but it is unused by the product UI.
+- The database still contains legacy `notes` and source-tracking fields, but notes/source are not part of the normal user-facing workflow.
 
 See `docs/google-health-setup.md` and `docs/api-integration-plan.md` for more detail.

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { differenceInCalendarDays } from "date-fns";
+import { requireAdminApi } from "@/lib/admin-auth";
 import { parseDateInput } from "@/lib/dates";
 import { googleHealthProvider } from "@/lib/integrations/google-health/provider";
 
@@ -11,6 +12,12 @@ const syncSchema = z.object({
 });
 
 export async function POST(request: Request) {
+  const unauthorized = await requireAdminApi();
+
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const body = await request.json().catch(() => null);
   const parsed = syncSchema.safeParse(body);
 
@@ -34,6 +41,7 @@ export async function POST(request: Request) {
   try {
     const summary = await googleHealthProvider.syncDailyMetrics(parsed.data.fromDate, parsed.data.toDate);
     revalidatePath("/");
+    revalidatePath("/admin");
 
     return NextResponse.json(summary);
   } catch (error) {

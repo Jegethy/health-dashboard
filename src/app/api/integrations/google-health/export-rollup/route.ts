@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { differenceInCalendarDays } from "date-fns";
+import { requireAdminApi } from "@/lib/admin-auth";
 import { parseDateInput } from "@/lib/dates";
 import { getConnectedGoogleHealthAccount } from "@/lib/integrations/google-health/client";
 import { fetchGoogleHealthRollupRows } from "@/lib/integrations/google-health/rollup";
@@ -22,6 +23,12 @@ const headers = [
 ];
 
 export async function GET(request: Request) {
+  const unauthorized = await requireAdminApi();
+
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const url = new URL(request.url);
   const parsed = querySchema.safeParse({
     fromDate: url.searchParams.get("fromDate"),

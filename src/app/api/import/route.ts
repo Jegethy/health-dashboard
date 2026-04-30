@@ -1,9 +1,16 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { requireAdminApi } from "@/lib/admin-auth";
 import { parseEntriesCsv } from "@/lib/csv";
 import { getEntries, upsertEntry } from "@/lib/entries";
 
 export async function POST(request: Request) {
+  const unauthorized = await requireAdminApi();
+
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const formData = await request.formData();
   const file = formData.get("file");
 
@@ -37,6 +44,7 @@ export async function POST(request: Request) {
   }
 
   revalidatePath("/");
+  revalidatePath("/admin");
 
   return NextResponse.json({
     inserted,

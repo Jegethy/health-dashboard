@@ -43,17 +43,6 @@ export function EntryForm() {
         <Field label="Weight kg" name="weightKg" type="number" step="0.1" min="0" />
         <Field label="Steps" name="steps" type="number" step="1" min="0" />
         <Field label="Calories burned" name="caloriesBurned" type="number" step="1" min="0" />
-        <div className="lg:col-span-6">
-          <label className="text-sm font-medium text-zinc-700 dark:text-zinc-300" htmlFor="notes">
-            Notes
-          </label>
-          <textarea
-            id="notes"
-            name="notes"
-            rows={3}
-            className="mt-2 w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-950 outline-none transition focus:border-teal-600 focus:ring-2 focus:ring-teal-600/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-50"
-          />
-        </div>
         <div className="flex flex-wrap items-center gap-3 lg:col-span-6">
           <button
             type="submit"

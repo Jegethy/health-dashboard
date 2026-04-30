@@ -228,7 +228,7 @@ export function IntegrationsPanel({ googleHealthStatus, initialMessage }: Integr
         <h3 className="text-sm font-semibold text-zinc-950 dark:text-zinc-50">Data reset</h3>
         <p className="mt-2 max-w-3xl text-sm text-zinc-600 dark:text-zinc-400">
           These actions delete local dashboard health entries only. Google Health connection,
-          OAuth tokens, sync logs, and Google Health/Fitbit source data are kept. Type DELETE to enable.
+          OAuth tokens, sync logs, and Google Health account data are kept. Type DELETE to enable.
         </p>
         <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
           <input

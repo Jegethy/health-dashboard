@@ -1,11 +1,18 @@
 import { format, subDays } from "date-fns";
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { requireAdminApi } from "@/lib/admin-auth";
 import { getConnectedGoogleHealthAccount } from "@/lib/integrations/google-health/client";
 import { googleHealthProvider } from "@/lib/integrations/google-health/provider";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(request: Request) {
+  const unauthorized = await requireAdminApi();
+
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const body = await request.json().catch(() => null);
 
   if (body?.confirmation !== "DELETE") {
@@ -30,6 +37,7 @@ export async function POST(request: Request) {
   const syncSummary = await googleHealthProvider.syncDailyMetrics(fromDate, toDate);
 
   revalidatePath("/");
+  revalidatePath("/admin");
 
   return NextResponse.json({
     deletedCount: deleteResult.count,

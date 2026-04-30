@@ -36,6 +36,6 @@ export async function GET(request: Request) {
 
 function redirectWithMessage(baseUrl: string, status: "success" | "error", message: string) {
   return NextResponse.redirect(
-    `${baseUrl}/?integration=${status}&message=${encodeURIComponent(message)}#integrations`,
+    `${baseUrl}/admin?integration=${status}&message=${encodeURIComponent(message)}#integrations`,
   );
 }

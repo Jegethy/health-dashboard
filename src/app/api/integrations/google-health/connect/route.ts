@@ -1,5 +1,6 @@
 import crypto from "crypto";
 import { NextResponse } from "next/server";
+import { requireAdminApi } from "@/lib/admin-auth";
 import {
   GOOGLE_HEALTH_AUTH_URL,
   getGoogleHealthConfig,
@@ -7,12 +8,18 @@ import {
 } from "@/lib/integrations/google-health/config";
 
 export async function GET() {
+  const unauthorized = await requireAdminApi();
+
+  if (unauthorized) {
+    return unauthorized;
+  }
+
   const config = getGoogleHealthConfig();
   const configError = getGoogleHealthConfigError(config);
 
   if (configError) {
     return NextResponse.redirect(
-      new URL(`/?integration=error&message=${encodeURIComponent(configError)}#integrations`, config.redirectUri),
+      new URL(`/admin?message=${encodeURIComponent(configError)}#integrations`, config.redirectUri),
     );
   }
 

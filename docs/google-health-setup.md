@@ -2,7 +2,7 @@
 
 Google Health API is the first live provider for this local personal dashboard. Fitbit Web API is not used because new Fitbit developer app creation is unavailable.
 
-The app keeps manual entry and CSV import/export as fallback and correction methods for weight, steps, total calories burned, and notes. It intentionally does not track food intake, hydration, mood, or calorie deficit/surplus.
+The app keeps manual entry and CSV import/export as fallback and correction methods for weight, steps, and total calories burned. It intentionally does not track food intake, hydration, mood, notes, or calorie deficit/surplus.
 
 ## What The Integration Syncs
 

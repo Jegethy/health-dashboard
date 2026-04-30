@@ -9,7 +9,7 @@ The intended flow is:
 3. Google Health daily summaries for weight, steps, and total calories burned are normalized into `DailyHealthEntry`.
 4. Manual entry and CSV import/export remain fallback and correction methods.
 
-This app intentionally does not track food intake, calories eaten, hydration, mood, general nutrition, or calorie deficit/surplus.
+This app intentionally does not track food intake, calories eaten, hydration, mood, notes, general nutrition, or calorie deficit/surplus.
 
 The provider code lives under `src/lib/integrations`. Dashboard components should depend on normalized provider interfaces, not raw provider response shapes.
 
@@ -22,11 +22,10 @@ The provider code lives under `src/lib/integrations`. Dashboard components shoul
 - Syncs daily `steps`, `total-calories`, and `weight` using `dataPoints:dailyRollUp`.
 - Requires `activity_and_fitness.readonly` for steps/total calories and `health_metrics_and_measurements.readonly` for weight.
 - Provides a direct Google Health rollup CSV export for comparing API output against the phone app.
-- Preserves notes.
 - Does not overwrite existing fields with null when Google Health has no value.
-- Marks entries as `google_health` or `mixed` in the dashboard source column.
+- Keeps source metadata internally for import/sync conflict behavior, but source is not part of the main dashboard.
 
-The legacy `caloriesEaten` database field is unused by the current product UI and may be removed in a future cleanup migration.
+The legacy `caloriesEaten` and `notes` database fields are unused by the current product UI and may be removed in a future cleanup migration.
 
 ## Fitbit
 
