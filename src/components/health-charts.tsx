@@ -27,7 +27,7 @@ export function HealthCharts({ entries }: HealthChartsProps) {
   }));
 
   return (
-    <section className="grid gap-4 xl:grid-cols-2">
+    <section className="flex flex-col gap-4">
       <ChartFrame title="Weight over time">
         {hasWeight ? (
           <ResponsiveContainer width="100%" height={280}>
@@ -55,40 +55,39 @@ export function HealthCharts({ entries }: HealthChartsProps) {
         )}
       </ChartFrame>
 
-      <ChartFrame title="Daily steps">
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" opacity={0.25} />
-            <XAxis dataKey="date" tickLine={false} axisLine={false} />
-            <YAxis tickLine={false} axisLine={false} />
-            <Tooltip />
-            <Bar dataKey="steps" name="Steps" fill="#2563eb" radius={[4, 4, 0, 0]} />
-          </BarChart>
-        </ResponsiveContainer>
-      </ChartFrame>
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ChartFrame title="Daily steps">
+          <ResponsiveContainer width="100%" height={280}>
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" opacity={0.25} />
+              <XAxis dataKey="date" tickLine={false} axisLine={false} />
+              <YAxis tickLine={false} axisLine={false} />
+              <Tooltip />
+              <Bar dataKey="steps" name="Steps" fill="#2563eb" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartFrame>
 
-      <ChartFrame title="Calories burned over time">
-        <ResponsiveContainer width="100%" height={280}>
-          <LineChart data={chartData}>
-            <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" opacity={0.25} />
-            <XAxis dataKey="date" tickLine={false} axisLine={false} />
-            <YAxis tickLine={false} axisLine={false} />
-            <Tooltip />
-            <Line
-              type="monotone"
-              dataKey="caloriesBurned"
-              name="Total calories burned"
-              stroke="#16a34a"
-              strokeWidth={3}
-              dot={false}
-              connectNulls
-            />
-          </LineChart>
-        </ResponsiveContainer>
-        <ChartNote>
-          Total calories burned as returned by Google Health/Fitbit.
-        </ChartNote>
-      </ChartFrame>
+        <ChartFrame title="Calories burned over time">
+          <ResponsiveContainer width="100%" height={280}>
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#3f3f46" opacity={0.25} />
+              <XAxis dataKey="date" tickLine={false} axisLine={false} />
+              <YAxis tickLine={false} axisLine={false} />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="caloriesBurned"
+                name="Total calories burned"
+                stroke="#16a34a"
+                strokeWidth={3}
+                dot={false}
+                connectNulls
+              />
+            </LineChart>
+          </ResponsiveContainer>
+        </ChartFrame>
+      </div>
     </section>
   );
 }
@@ -115,8 +114,4 @@ function EmptyChartMessage({ title, detail }: { title: string; detail: string })
       <p className="mt-2 max-w-sm text-sm text-zinc-500 dark:text-zinc-400">{detail}</p>
     </div>
   );
-}
-
-function ChartNote({ children }: { children: React.ReactNode }) {
-  return <p className="mt-3 text-xs text-zinc-500 dark:text-zinc-400">{children}</p>;
 }

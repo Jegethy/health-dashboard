@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Health Dashboard",
-  description: "A local personal health and weight-loss tracking dashboard.",
+  description: "A local dashboard for weight, steps, and calorie-burn trends.",
 };
 
 export default function RootLayout({

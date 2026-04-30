@@ -19,7 +19,7 @@ export function DataCoverage({ entries }: DataCoverageProps) {
         <div>
           <h2 className="text-base font-semibold text-zinc-950 dark:text-zinc-50">Data coverage</h2>
           <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-            Counts across the current dashboard rows.
+            Counts across the current local rows.
           </p>
         </div>
         <div className="flex flex-wrap gap-2">

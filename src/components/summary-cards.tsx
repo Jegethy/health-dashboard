@@ -1,7 +1,6 @@
 import {
   averageCaloriesBurnedLast7Days,
   averageStepsLast7Days,
-  dataCoverage,
   latestWeight,
   weightChange,
 } from "@/lib/calculations";
@@ -12,7 +11,6 @@ type SummaryCardsProps = {
 };
 
 export function SummaryCards({ entries }: SummaryCardsProps) {
-  const coverage = dataCoverage(entries);
   const currentWeight = latestWeight(entries);
   const stats = [
     {
@@ -38,15 +36,10 @@ export function SummaryCards({ entries }: SummaryCardsProps) {
       value: formatKcal(averageCaloriesBurnedLast7Days(entries)),
       detail: "Total calories burned, last 7 tracked days",
     },
-    {
-      label: "Data coverage",
-      value: `${coverage.totalDays} days`,
-      detail: `${coverage.totalDays} days with API or local data`,
-    },
   ];
 
   return (
-    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
+    <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
       {stats.map((stat) => (
         <article
           key={stat.label}

@@ -18,7 +18,7 @@ It intentionally does not track food intake, calories eaten, hydration, mood, ge
 - Dashboard summary cards for latest weight, weight change, average steps, average calories burned, and compact data coverage.
 - Charts for weight, steps, and total calories burned.
 - Recent entries table.
-- Dashboard CSV import/export using:
+- CSV import/export from Admin / Data tools using:
 
 ```csv
 date,weightKg,steps,caloriesBurned,notes
@@ -100,7 +100,7 @@ After changing scopes, update Google Cloud Data Access and `.env.local`, then di
 
 ## CSV Import And Export
 
-Dashboard CSV import/export uses:
+Admin / Data tools CSV import/export uses:
 
 ```csv
 date,weightKg,steps,caloriesBurned,notes

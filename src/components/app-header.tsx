@@ -2,22 +2,18 @@ import Link from "next/link";
 
 type AppHeaderProps = {
   active: "dashboard" | "admin";
-  entryCount?: number;
 };
 
-export function AppHeader({ active, entryCount }: AppHeaderProps) {
+export function AppHeader({ active }: AppHeaderProps) {
   return (
     <header className="flex flex-col gap-3 border-b border-zinc-200 pb-5 dark:border-zinc-800">
-      <p className="text-sm font-medium text-teal-700 dark:text-teal-400">
-        Weight, movement, and burn trends
-      </p>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1 className="text-3xl font-semibold tracking-tight text-zinc-950 dark:text-zinc-50">
             Health Dashboard
           </h1>
           <p className="mt-2 max-w-2xl text-sm text-zinc-600 dark:text-zinc-400">
-            Google Health-powered tracking for weight, steps, and total calories burned.
+            Weight, steps, and calorie-burn trends from Google Health.
           </p>
         </div>
         <nav className="flex flex-wrap items-center gap-2 text-sm">
@@ -27,9 +23,6 @@ export function AppHeader({ active, entryCount }: AppHeaderProps) {
           <NavLink href="/admin" active={active === "admin"}>
             Admin / Data tools
           </NavLink>
-          {entryCount != null ? (
-            <span className="ml-1 text-zinc-500 dark:text-zinc-400">{entryCount} entries</span>
-          ) : null}
         </nav>
       </div>
     </header>

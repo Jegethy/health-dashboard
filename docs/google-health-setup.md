@@ -91,7 +91,7 @@ This can be used later with Windows Task Scheduler. The project does not configu
 
 ## Google Health Rollup CSV Export
 
-The dashboard Integrations panel includes:
+The Admin / Data tools page includes:
 
 - Export Google Health rollup CSV: last 7 days
 - Export Google Health rollup CSV: last 30 days
@@ -150,7 +150,7 @@ npm run db:clear-health-entries
 
 This deletes `DailyHealthEntry` rows only. It does not delete `IntegrationAccount`, OAuth tokens, `SyncLog`, or the SQLite database file.
 
-The dashboard also has a Data reset section. Type `DELETE`, then choose:
+The Admin / Data tools page also has a Data reset section. Type `DELETE`, then choose:
 
 - Clear local health entries
 - Clear and sync last 30 days
