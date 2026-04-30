@@ -4,15 +4,21 @@ import { ImportExport } from "@/components/import-export";
 import { IntegrationsPanel } from "@/components/integrations-panel";
 import { RecentEntries } from "@/components/recent-entries";
 import { SummaryCards } from "@/components/summary-cards";
-import { fitbitProvider } from "@/lib/integrations/fitbit/provider";
+import { googleHealthProvider } from "@/lib/integrations/google-health/provider";
 import { getEntries } from "@/lib/entries";
 
 export const dynamic = "force-dynamic";
 
-export default async function Home() {
-  const [entries, fitbitStatus] = await Promise.all([
+type PageProps = {
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+};
+
+export default async function Home({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const integrationMessage = firstParam(params?.message) ?? null;
+  const [entries, googleHealthStatus] = await Promise.all([
     getEntries(),
-    fitbitProvider.getStatus(),
+    googleHealthProvider.getStatus(),
   ]);
 
   return (
@@ -39,11 +45,18 @@ export default async function Home() {
 
         <SummaryCards entries={entries} />
         <HealthCharts entries={entries} />
-        <IntegrationsPanel fitbitStatus={fitbitStatus} />
+        <IntegrationsPanel
+          googleHealthStatus={googleHealthStatus}
+          initialMessage={integrationMessage}
+        />
         <EntryForm />
         <ImportExport />
         <RecentEntries entries={entries} />
       </div>
     </main>
   );
+}
+
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
 }

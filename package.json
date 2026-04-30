@@ -11,7 +11,9 @@
     "db:migrate": "node prisma/setup.js",
     "db:setup": "node prisma/setup.js && node prisma/seed.js",
     "db:seed": "node prisma/seed.js",
-    "sync:fitbit": "tsx scripts/sync-fitbit.ts"
+    "db:clear-sample": "node scripts/clear-sample-data.js",
+    "sync:google-health": "tsx scripts/sync-google-health.ts",
+    "sync:fitbit": "node -e \"console.error('sync:fitbit has been removed because Fitbit Web API new app creation is unavailable. Use npm run sync:google-health.'); process.exit(1)\""
   },
   "dependencies": {
     "@prisma/client": "^6.19.3",

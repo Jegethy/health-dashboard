@@ -38,7 +38,7 @@ export function RecentEntries({ entries }: RecentEntriesProps) {
                 <Td>{formatBalance(calorieBalance(entry))}</Td>
                 <Td>
                   <span className="rounded-full bg-zinc-100 px-2 py-1 text-xs font-medium capitalize text-zinc-700 dark:bg-zinc-800 dark:text-zinc-200">
-                    {entry.source}
+                    {formatSource(entry.source)}
                   </span>
                 </Td>
                 <Td>{entry.notes || "-"}</Td>
@@ -65,4 +65,16 @@ function formatBalance(value: number | null) {
   }
 
   return `${value > 0 ? "+" : ""}${value.toLocaleString()} kcal`;
+}
+
+function formatSource(source: string) {
+  const labels: Record<string, string> = {
+    manual: "Manual",
+    csv: "CSV",
+    google_health: "Google Health",
+    mixed: "Mixed",
+    sample: "Sample",
+  };
+
+  return labels[source] ?? source;
 }

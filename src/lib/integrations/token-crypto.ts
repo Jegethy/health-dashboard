@@ -1,5 +1,4 @@
 import crypto from "crypto";
-import { getFitbitConfig } from "@/lib/integrations/fitbit/config";
 
 const algorithm = "aes-256-gcm";
 
@@ -16,7 +15,7 @@ export function decryptToken(encryptedToken: string): string {
   const [iv, tag, encrypted] = encryptedToken.split(".").map((part) => Buffer.from(part, "base64url"));
 
   if (!iv || !tag || !encrypted) {
-    throw new Error("Stored Fitbit token is not in a readable encrypted format.");
+    throw new Error("Stored integration token is not in a readable encrypted format.");
   }
 
   const decipher = crypto.createDecipheriv(algorithm, getKey(), iv);
@@ -26,10 +25,10 @@ export function decryptToken(encryptedToken: string): string {
 }
 
 function getKey() {
-  const encryptionKey = getFitbitConfig().encryptionKey;
+  const encryptionKey = process.env.INTEGRATION_TOKEN_ENCRYPTION_KEY?.trim();
 
   if (!encryptionKey) {
-    throw new Error("FITBIT_TOKEN_ENCRYPTION_KEY is missing.");
+    throw new Error("INTEGRATION_TOKEN_ENCRYPTION_KEY is missing.");
   }
 
   return crypto.createHash("sha256").update(encryptionKey).digest();

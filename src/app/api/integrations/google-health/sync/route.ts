@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { differenceInCalendarDays } from "date-fns";
 import { parseDateInput } from "@/lib/dates";
-import { fitbitProvider } from "@/lib/integrations/fitbit/provider";
+import { googleHealthProvider } from "@/lib/integrations/google-health/provider";
 
 const syncSchema = z.object({
   fromDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -27,18 +27,18 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "toDate must be on or after fromDate." }, { status: 400 });
   }
 
-  if (days > 31) {
-    return NextResponse.json({ error: "Fitbit sync is limited to 31 days per request." }, { status: 400 });
+  if (days > 30) {
+    return NextResponse.json({ error: "Google Health sync is limited to 31 calendar days per request." }, { status: 400 });
   }
 
   try {
-    const summary = await fitbitProvider.syncDailyMetrics(parsed.data.fromDate, parsed.data.toDate);
+    const summary = await googleHealthProvider.syncDailyMetrics(parsed.data.fromDate, parsed.data.toDate);
     revalidatePath("/");
 
     return NextResponse.json(summary);
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Fitbit sync failed." },
+      { error: error instanceof Error ? error.message : "Google Health sync failed." },
       { status: 500 },
     );
   }

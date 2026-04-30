@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
-import { FITBIT_PROVIDER } from "@/lib/integrations/fitbit/config";
+import { GOOGLE_HEALTH_PROVIDER } from "@/lib/integrations/google-health/config";
 import { prisma } from "@/lib/prisma";
 
 export async function POST() {
   await prisma.integrationAccount.deleteMany({
-    where: { provider: FITBIT_PROVIDER },
+    where: { provider: GOOGLE_HEALTH_PROVIDER },
   });
 
   revalidatePath("/");

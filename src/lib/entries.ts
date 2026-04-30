@@ -14,7 +14,7 @@ export type EntryView = {
   notes: string;
   source: string;
   sourceUpdatedAt: string | null;
-  fitbitSyncedAt: string | null;
+  syncedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -100,7 +100,7 @@ function toEntryView(entry: DailyHealthEntry): EntryView {
     notes: entry.notes ?? "",
     source: entry.source,
     sourceUpdatedAt: entry.sourceUpdatedAt?.toISOString() ?? null,
-    fitbitSyncedAt: entry.fitbitSyncedAt?.toISOString() ?? null,
+    syncedAt: entry.syncedAt?.toISOString() ?? null,
     createdAt: entry.createdAt.toISOString(),
     updatedAt: entry.updatedAt.toISOString(),
   };

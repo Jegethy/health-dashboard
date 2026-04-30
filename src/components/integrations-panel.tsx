@@ -6,26 +6,19 @@ import { useRouter } from "next/navigation";
 import { ProviderStatus, SyncSummary } from "@/lib/integrations/types";
 
 type IntegrationsPanelProps = {
-  fitbitStatus: ProviderStatus;
+  googleHealthStatus: ProviderStatus;
+  initialMessage: string | null;
 };
 
-export function IntegrationsPanel({ fitbitStatus }: IntegrationsPanelProps) {
+export function IntegrationsPanel({ googleHealthStatus, initialMessage }: IntegrationsPanelProps) {
   const router = useRouter();
-  const [message, setMessage] = useState<string | null>(() => {
-    if (typeof window === "undefined") {
-      return fitbitStatus.configError;
-    }
-
-    return new URLSearchParams(window.location.search).get("message") ?? fitbitStatus.configError;
-  });
+  const [message, setMessage] = useState<string | null>(
+    initialMessage ?? googleHealthStatus.configError,
+  );
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const fitbit = params.get("fitbit");
-    const oauthMessage = params.get("message");
-
-    if (fitbit && oauthMessage) {
+    if (window.location.search) {
       window.history.replaceState(null, "", window.location.pathname + window.location.hash);
     }
   }, []);
@@ -36,7 +29,7 @@ export function IntegrationsPanel({ fitbitStatus }: IntegrationsPanelProps) {
 
     const toDate = format(new Date(), "yyyy-MM-dd");
     const fromDate = format(subDays(new Date(), days - 1), "yyyy-MM-dd");
-    const response = await fetch("/api/integrations/fitbit/sync", {
+    const response = await fetch("/api/integrations/google-health/sync", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ fromDate, toDate }),
@@ -46,29 +39,30 @@ export function IntegrationsPanel({ fitbitStatus }: IntegrationsPanelProps) {
     setIsSyncing(false);
 
     if (!response.ok) {
-      setMessage(result.error ?? "Fitbit sync failed.");
+      setMessage(result.error ?? "Google Health sync failed.");
       return;
     }
 
     const summary = result as SyncSummary;
+    const warning = summary.errors.length > 0 ? ` Warnings: ${summary.errors.slice(0, 2).join(" | ")}` : "";
     setMessage(
-      `Fitbit sync complete: ${summary.createdCount} created, ${summary.updatedCount} updated, ${summary.errorCount} error(s).`,
+      `Google Health sync complete: ${summary.createdCount} created, ${summary.updatedCount} updated, ${summary.errorCount} warning/error(s).${warning}`,
     );
     router.refresh();
   }
 
   async function disconnect() {
     setMessage(null);
-    const response = await fetch("/api/integrations/fitbit/disconnect", {
+    const response = await fetch("/api/integrations/google-health/disconnect", {
       method: "POST",
     });
 
     if (!response.ok) {
-      setMessage("Could not disconnect Fitbit.");
+      setMessage("Could not disconnect Google Health.");
       return;
     }
 
-    setMessage("Fitbit disconnected. Existing health entries were kept.");
+    setMessage("Google Health disconnected. Existing health entries were kept.");
     router.refresh();
   }
 
@@ -80,28 +74,33 @@ export function IntegrationsPanel({ fitbitStatus }: IntegrationsPanelProps) {
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
           <p className="text-sm font-medium text-teal-700 dark:text-teal-400">Integrations</p>
-          <h2 className="mt-1 text-lg font-semibold text-zinc-950 dark:text-zinc-50">Fitbit</h2>
+          <h2 className="mt-1 text-lg font-semibold text-zinc-950 dark:text-zinc-50">
+            Google Health
+          </h2>
           <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-3">
-            <StatusItem label="Status" value={fitbitStatus.connected ? "Connected" : "Not connected"} />
-            <StatusItem label="Account" value={fitbitStatus.displayName ?? fitbitStatus.providerUserId ?? "-"} />
-            <StatusItem label="Scopes" value={fitbitStatus.scopes.join(", ") || "-"} />
-            <StatusItem label="Last sync" value={formatDateTime(fitbitStatus.lastSyncAt)} />
-            <StatusItem label="Last status" value={fitbitStatus.lastSyncStatus ?? "-"} />
-            <StatusItem label="Message" value={fitbitStatus.lastSyncMessage ?? "-"} />
+            <StatusItem label="Status" value={googleHealthStatus.connected ? "Connected" : "Not connected"} />
+            <StatusItem label="Google Health ID" value={googleHealthStatus.googleHealthUserId ?? googleHealthStatus.providerUserId ?? "-"} />
+            <StatusItem label="Legacy Fitbit ID" value={googleHealthStatus.legacyFitbitUserId ?? "-"} />
+            <StatusItem label="Configured scopes" value={googleHealthStatus.configuredScopes.join(", ") || "-"} />
+            <StatusItem label="Granted scopes" value={googleHealthStatus.scopes.join(", ") || "-"} />
+            <StatusItem label="Missing required scopes" value={googleHealthStatus.missingRequiredScopes.join(", ") || "-"} />
+            <StatusItem label="Last sync" value={formatDateTime(googleHealthStatus.lastSyncAt)} />
+            <StatusItem label="Last status" value={googleHealthStatus.lastSyncStatus ?? "-"} />
+            <StatusItem label="Message" value={googleHealthStatus.lastSyncMessage ?? "-"} />
           </dl>
         </div>
 
         <div className="flex flex-wrap gap-2 lg:justify-end">
           <a
-            href="/api/integrations/fitbit/connect"
-            aria-disabled={!fitbitStatus.configured}
+            href="/api/integrations/google-health/connect"
+            aria-disabled={!googleHealthStatus.configured}
             className="rounded-md bg-teal-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-teal-800 aria-disabled:pointer-events-none aria-disabled:opacity-50"
           >
-            Connect Fitbit
+            Connect Google Health
           </a>
           <button
             type="button"
-            disabled={!fitbitStatus.connected || isSyncing}
+            disabled={!googleHealthStatus.connected || isSyncing}
             onClick={() => syncDays(7)}
             className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-900"
           >
@@ -109,7 +108,7 @@ export function IntegrationsPanel({ fitbitStatus }: IntegrationsPanelProps) {
           </button>
           <button
             type="button"
-            disabled={!fitbitStatus.connected || isSyncing}
+            disabled={!googleHealthStatus.connected || isSyncing}
             onClick={() => syncDays(30)}
             className="rounded-md border border-zinc-300 px-4 py-2 text-sm font-semibold text-zinc-800 transition hover:bg-zinc-100 disabled:cursor-not-allowed disabled:opacity-50 dark:border-zinc-700 dark:text-zinc-100 dark:hover:bg-zinc-900"
           >
@@ -117,7 +116,7 @@ export function IntegrationsPanel({ fitbitStatus }: IntegrationsPanelProps) {
           </button>
           <button
             type="button"
-            disabled={!fitbitStatus.connected}
+            disabled={!googleHealthStatus.connected}
             onClick={disconnect}
             className="rounded-md border border-red-300 px-4 py-2 text-sm font-semibold text-red-700 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-red-900 dark:text-red-300 dark:hover:bg-red-950/40"
           >
@@ -126,9 +125,15 @@ export function IntegrationsPanel({ fitbitStatus }: IntegrationsPanelProps) {
         </div>
       </div>
       {message ? <p className="mt-4 text-sm text-zinc-600 dark:text-zinc-300">{message}</p> : null}
-      {!fitbitStatus.configured ? (
+      {googleHealthStatus.connected && googleHealthStatus.missingRequiredScopes.length > 0 ? (
+        <p className="mt-3 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-200">
+          Google Health is connected, but required scopes are missing. Disconnect and reconnect
+          Google Health after updating .env.local and Google Cloud OAuth scopes.
+        </p>
+      ) : null}
+      {!googleHealthStatus.configured ? (
         <p className="mt-2 text-sm text-amber-700 dark:text-amber-300">
-          Add the Fitbit values from .env.example to .env.local, then restart the dev server.
+          Add the Google Health values from .env.example to .env.local, then restart the dev server.
         </p>
       ) : null}
     </section>
@@ -149,8 +154,5 @@ function formatDateTime(value: string | null) {
     return "-";
   }
 
-  return new Intl.DateTimeFormat("en-GB", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  }).format(new Date(value));
+  return value.slice(0, 16).replace("T", " ");
 }

@@ -2,7 +2,7 @@
 
 A local personal health and weight-loss tracking dashboard built with Next.js App Router, TypeScript, Tailwind CSS, Recharts, SQLite, Prisma, Zod, and date-fns.
 
-The MVP started with manual entry and CSV import/export. The app now also includes a Fitbit provider as the first live data source, while keeping manual and CSV workflows as fallbacks.
+The app supports manual entry, CSV import/export, and Google Health API sync. Fitbit Web API is not used because new Fitbit developer app creation is unavailable.
 
 ## Features
 
@@ -10,8 +10,8 @@ The MVP started with manual entry and CSV import/export. The app now also includ
 - One entry per date; saving an existing date updates that entry.
 - Summary cards for latest weight, total weight change, 7-day average steps, 7-day calorie balance, and current entry streak.
 - Charts for weight, steps, calories eaten versus burned, and calorie deficit/surplus.
-- Recent entries table sorted newest first.
-- Fitbit OAuth connection and date-range sync.
+- Recent entries table sorted newest first, with source indicators.
+- Google Health OAuth connection and date-range sync.
 - CSV export and import using:
 
 ```csv
@@ -32,16 +32,6 @@ The app uses SQLite through Prisma. The local database URL is:
 DATABASE_URL="file:./dev.db"
 ```
 
-Fitbit integration also uses:
-
-```bash
-FITBIT_CLIENT_ID="your-fitbit-client-id"
-FITBIT_CLIENT_SECRET="your-fitbit-client-secret"
-FITBIT_REDIRECT_URI="http://127.0.0.1:3000/api/integrations/fitbit/callback"
-FITBIT_SCOPES="activity weight nutrition profile"
-FITBIT_TOKEN_ENCRYPTION_KEY="a-long-random-local-secret"
-```
-
 For a fresh setup:
 
 ```bash
@@ -56,7 +46,7 @@ You can also run both database creation and seed data in one step:
 npm run db:setup
 ```
 
-The app also seeds fictional sample data automatically when the database is empty. In this MVP, `db:migrate` runs an idempotent local SQLite setup script because Prisma's migration engine can be sensitive to local Windows execution policy and binary-download issues. The Prisma schema remains the source of truth for the application model.
+`db:migrate` runs an idempotent local SQLite setup script. The Prisma schema remains the source of truth for the application model.
 
 ## Run Locally
 
@@ -64,52 +54,76 @@ The app also seeds fictional sample data automatically when the database is empt
 npm run dev
 ```
 
-Open http://localhost:3000.
+Open http://127.0.0.1:3000.
 
-For Fitbit OAuth, prefer opening http://127.0.0.1:3000 so it matches the local callback URL exactly.
+## Google Health Integration
 
-## Fitbit Integration
-
-Fitbit is used as the first live source for data pushed from Health Sync on Android. It can sync:
-
-- Weight
-- Steps
-- Calories burned
-- Calories eaten, when Fitbit nutrition data is available
-
-Setup:
-
-1. Register a Fitbit developer app.
-2. Use this callback URL:
-
-```text
-http://127.0.0.1:3000/api/integrations/fitbit/callback
-```
-
-3. Add the Fitbit values to `.env.local`.
-4. Restart the dev server.
-5. Click Connect Fitbit in the dashboard Integrations section.
-6. Click Sync last 30 days.
-
-Manual sync from the command line after OAuth is connected:
+Create `.env.local` from `.env.example` and add:
 
 ```bash
-npm run sync:fitbit
+GOOGLE_HEALTH_CLIENT_ID="your-google-oauth-client-id"
+GOOGLE_HEALTH_CLIENT_SECRET="your-google-oauth-client-secret"
+GOOGLE_HEALTH_REDIRECT_URI="http://127.0.0.1:3000/api/integrations/google-health/callback"
+GOOGLE_HEALTH_SCOPES="https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly https://www.googleapis.com/auth/googlehealth.profile.readonly"
+GOOGLE_HEALTH_DEBUG_SYNC="false"
+INTEGRATION_TOKEN_ENCRYPTION_KEY="a-long-random-local-secret"
+```
+
+Required sync scopes:
+
+- `https://www.googleapis.com/auth/googlehealth.activity_and_fitness.readonly` for steps and total calories.
+- `https://www.googleapis.com/auth/googlehealth.health_metrics_and_measurements.readonly` for weight.
+
+After changing scopes, update Google Cloud Data Access and `.env.local`, then disconnect and reconnect Google Health. Existing OAuth grants do not automatically gain new scopes. If the dashboard shows only `activity_and_fitness.readonly`, weight sync will fail or be skipped.
+
+The local OAuth callback URL is:
+
+```text
+http://127.0.0.1:3000/api/integrations/google-health/callback
+```
+
+After configuring Google Cloud and `.env.local`:
+
+1. Restart the dev server.
+2. Open http://127.0.0.1:3000.
+3. Click Connect Google Health.
+4. Complete Google OAuth consent.
+5. Click Sync last 7 days or Sync last 30 days.
+
+Manual command-line sync after OAuth is connected:
+
+```bash
+npm run sync:google-health
 ```
 
 Use a custom day count:
 
 ```bash
-$env:FITBIT_SYNC_DAYS=14; npm run sync:fitbit
+$env:GOOGLE_HEALTH_SYNC_DAYS=14; npm run sync:google-health
+```
+
+Safe sync debug logging:
+
+```bash
+GOOGLE_HEALTH_DEBUG_SYNC="true"
+```
+
+This logs rollup field names and mapped values without logging tokens or secrets.
+
+Clear fictional sample rows only:
+
+```bash
+npm run db:clear-sample
 ```
 
 Troubleshooting:
 
-- If the Integrations section says Fitbit is not configured, check `.env.local`.
-- If token decryption fails after changing `FITBIT_TOKEN_ENCRYPTION_KEY`, disconnect and reconnect Fitbit.
-- Fitbit Web API is legacy; future migration to Google Health API is planned.
+- If the Integrations section says Google Health is not configured, check `.env.local` and restart the dev server.
+- If token decryption fails after changing `INTEGRATION_TOKEN_ENCRYPTION_KEY`, disconnect and reconnect Google Health.
+- If Google OAuth reports a redirect mismatch, verify the callback URL in Google Cloud.
+- If Google returns 403, confirm the Google Health API is enabled, Google Cloud Data Access has the requested scopes, `.env.local` matches, and your account is a test user.
 
-See `docs/fitbit-setup.md` for full setup details.
+See `docs/google-health-setup.md` for full setup details.
 
 ## CSV Import And Export
 
@@ -122,7 +136,8 @@ See `docs/fitbit-setup.md` for full setup details.
 ## Current Limitations
 
 - Local-only app with no authentication.
-- Fitbit Web API is legacy and local-only OAuth setup is required.
+- Google Health API is new and may change.
+- Calories eaten is manual/CSV only until Google documents a clear nutrition/calories-eaten API path.
 - No deletion UI yet.
 - CSV parsing handles normal quoted CSV files but is intentionally simple.
 - Metrics such as measurements, gym sessions, sleep, water intake, and mood are planned but not implemented.
@@ -132,7 +147,7 @@ See `docs/fitbit-setup.md` for full setup details.
 - Add delete entry support.
 - Add optional metrics for sleep, water, mood, body measurements, and gym sessions.
 - Add provider-specific CSV mappers for MyFitnessPal and Samsung Health exports.
-- Add Google Health API provider as a future Fitbit migration path.
+- Add calories-eaten sync if Google Health documents nutrition support.
 - Add import preview and row-level error display.
 
 See `docs/api-integration-plan.md` for the future integration plan.

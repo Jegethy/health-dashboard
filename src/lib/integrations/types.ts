@@ -2,9 +2,14 @@ export type ProviderStatus = {
   configured: boolean;
   connected: boolean;
   providerUserId: string | null;
+  googleHealthUserId?: string | null;
+  legacyFitbitUserId?: string | null;
   displayName: string | null;
   email: string | null;
   scopes: string[];
+  configuredScopes: string[];
+  requiredScopes: string[];
+  missingRequiredScopes: string[];
   connectedAt: string | null;
   lastSyncAt: string | null;
   lastSyncStatus: string | null;
@@ -29,6 +34,7 @@ export type SyncSummary = {
   skippedFields: number;
   errorCount: number;
   errors: string[];
+  syncLogId?: number;
 };
 
 export type HealthDataProvider = {

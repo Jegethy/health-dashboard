@@ -14,7 +14,7 @@ async function main() {
       "notes" TEXT,
       "source" TEXT NOT NULL DEFAULT 'manual',
       "sourceUpdatedAt" DATETIME,
-      "fitbitSyncedAt" DATETIME,
+      "syncedAt" DATETIME,
       "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
       "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
@@ -22,7 +22,7 @@ async function main() {
 
   await addColumnIfMissing("DailyHealthEntry", "source", "TEXT NOT NULL DEFAULT 'manual'");
   await addColumnIfMissing("DailyHealthEntry", "sourceUpdatedAt", "DATETIME");
-  await addColumnIfMissing("DailyHealthEntry", "fitbitSyncedAt", "DATETIME");
+  await addColumnIfMissing("DailyHealthEntry", "syncedAt", "DATETIME");
 
   await prisma.$executeRawUnsafe(`
     CREATE UNIQUE INDEX IF NOT EXISTS "DailyHealthEntry_date_key"
@@ -34,6 +34,8 @@ async function main() {
       "id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
       "provider" TEXT NOT NULL,
       "providerUserId" TEXT,
+      "googleHealthUserId" TEXT,
+      "legacyFitbitUserId" TEXT,
       "displayName" TEXT,
       "email" TEXT,
       "scopes" TEXT,
@@ -47,6 +49,9 @@ async function main() {
       "updatedAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
   `);
+
+  await addColumnIfMissing("IntegrationAccount", "googleHealthUserId", "TEXT");
+  await addColumnIfMissing("IntegrationAccount", "legacyFitbitUserId", "TEXT");
 
   await prisma.$executeRawUnsafe(`
     CREATE UNIQUE INDEX IF NOT EXISTS "IntegrationAccount_provider_providerUserId_key"

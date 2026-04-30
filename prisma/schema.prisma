@@ -15,9 +15,9 @@ model DailyHealthEntry {
   caloriesEaten  Int?
   caloriesBurned Int?
   notes          String?
-  source         String   @default("manual")
+  source          String   @default("manual")
   sourceUpdatedAt DateTime?
-  fitbitSyncedAt DateTime?
+  syncedAt        DateTime?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
@@ -26,6 +26,8 @@ model IntegrationAccount {
   id                    Int       @id @default(autoincrement())
   provider              String
   providerUserId        String?
+  googleHealthUserId    String?
+  legacyFitbitUserId    String?
   displayName           String?
   email                 String?
   scopes                String?
